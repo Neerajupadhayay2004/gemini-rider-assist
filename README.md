@@ -1,73 +1,149 @@
-# Welcome to your Lovable project
+# 🚴‍♂️ **Gemini Rider Assist**
 
-## Project info
+A Smart Rider Assistance System that provides real-time data, alerts, and seamless UI powered by **React + TypeScript + Vite + Tailwind + shadcn-ui**.
+This project is designed for riders who need reliable, fast, and intuitive tools for navigation, safety, and reporting.
 
-**URL**: https://lovable.dev/projects/0a016da7-7d78-4b7c-b039-4837d2300fc4
+<img width="1920" height="1080" alt="Screenshot_2025-11-23_20-56-50" src="https://github.com/user-attachments/assets/74117723-f334-4ca5-b917-f418fc36f882" />
+<img width="1920" height="1080" alt="Screenshot_2025-11-23_20-56-57" src="https://github.com/user-attachments/assets/66bc75e5-2e35-41d5-9134-2893ab3c80ba" />
 
-## How can I edit this code?
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## 🌟 **Features**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0a016da7-7d78-4b7c-b039-4837d2300fc4) and start prompting.
+* 🔥 **Real-time Rider Dashboard**
+* 🛣️ **Live Alerts & Notifications**
+* 🗺️ **Smart Navigation Components**
+* 🧩 **Modular & Scalable React Architecture**
+* ⚡ **Lightning-fast Vite Development**
+* 🎨 **Modern UI with Tailwind + shadcn-ui**
+* 🔐 **Secure Components Ready for API Integration**
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## 🛠️ **Tech Stack**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+| Category        | Technology                      |
+| --------------- | ------------------------------- |
+| Frontend        | React + TypeScript              |
+| Bundler         | Vite                            |
+| Styling         | Tailwind CSS                    |
+| UI Library      | shadcn-ui                       |
+| Package Manager | npm                             |
+| Hosting         | Netlify / Vercel / GitHub Pages |
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+## 🚀 **Getting Started**
+
+Follow these steps to run the project locally:
+
+### **1️⃣ Clone the repository**
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone https://github.com/Neerajupadhayay2004/gemini-rider-assist.git
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### **2️⃣ Go inside the project folder**
 
-# Step 3: Install the necessary dependencies.
-npm i
+```sh
+cd gemini-rider-assist
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### **3️⃣ Install required dependencies**
+
+```sh
+npm install
+```
+
+### **4️⃣ Start the development server**
+
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Your app will start on:
+👉 **[http://localhost:5173](http://localhost:5173)**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## 📂 **Project Structure**
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
+gemini-rider-assist/
+│
+├── src/
+│   ├── components/      # Reusable UI components
+│   ├── pages/           # Route-based pages
+│   ├── hooks/           # Custom hooks
+│   ├── lib/             # Helper functions
+│   ├── assets/          # Images, icons, etc.
+│   ├── App.tsx
+│   ├── main.tsx
+│
+├── public/              # Static assets
+├── package.json
+├── tailwind.config.js
+├── tsconfig.json
+└── vite.config.ts
+```
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## 🧪 **Available Scripts**
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+| Command           | Description                  |
+| ----------------- | ---------------------------- |
+| `npm run dev`     | Start development server     |
+| `npm run build`   | Build project for production |
+| `npm run preview` | Preview production build     |
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/0a016da7-7d78-4b7c-b039-4837d2300fc4) and click on Share -> Publish.
+## 🚀 **Deployment**
 
-## Can I connect a custom domain to my Lovable project?
+You can deploy this project easily using:
 
-Yes, you can!
+### ✔ **Netlify**
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+1. Build the project
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+   ```sh
+   npm run build
+   ```
+2. Upload the `dist/` folder
+3. Done!
+
+### ✔ **Vercel**
+
+Just import the repo → Deploy.
+
+### ✔ **GitHub Pages**
+
+1. Build the project:
+
+   ```sh
+   npm run build
+   ```
+2. Upload `dist/` folder to GitHub Pages.
+
+---
+
+## 🤝 **Contributing**
+
+Contributions are welcome!
+Feel free to open an **issue** or submit a **pull request**.
+
+---
+
+## 📄 **License**
+
+This project is **Open Source** and free to use.
+
+---
+
+## 👤 **Author**
+
+**Neeraj Upadhayay**
+GitHub: [https://github.com/Neeraj29118](https://github.com/Neeraj29118)
+Email: [neerajupadhayay347@gmail.com](mailto:neerajupadhayay347@gmail.com)
