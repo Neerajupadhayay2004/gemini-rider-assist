@@ -1,9 +1,43 @@
+import { useState, useEffect } from 'react';
 import { Shield, Zap, Brain } from 'lucide-react';
 import SensorDisplay from '@/components/SensorDisplay';
 import LocationTracker from '@/components/LocationTracker';
 import VoiceAssistant from '@/components/VoiceAssistant';
 
+interface SensorData {
+  acceleration: { x: number; y: number; z: number };
+  gyroscope: { alpha: number; beta: number; gamma: number };
+}
+
+interface LocationData {
+  latitude: number;
+  longitude: number;
+  speed: number | null;
+}
+
 const Index = () => {
+  const [sensorData, setSensorData] = useState<SensorData | undefined>();
+  const [locationData, setLocationData] = useState<LocationData | undefined>();
+
+  useEffect(() => {
+    // Listen for sensor updates
+    const handleSensorUpdate = (data: SensorData) => {
+      setSensorData(data);
+    };
+
+    // Listen for location updates
+    const handleLocationUpdate = (data: LocationData) => {
+      setLocationData(data);
+    };
+
+    window.addEventListener('sensorUpdate' as any, (e: any) => handleSensorUpdate(e.detail));
+    window.addEventListener('locationUpdate' as any, (e: any) => handleLocationUpdate(e.detail));
+
+    return () => {
+      window.removeEventListener('sensorUpdate' as any, handleSensorUpdate);
+      window.removeEventListener('locationUpdate' as any, handleLocationUpdate);
+    };
+  }, []);
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Animated Background */}
@@ -44,7 +78,7 @@ const Index = () => {
 
         {/* Voice Assistant */}
         <div className="max-w-4xl mx-auto">
-          <VoiceAssistant />
+          <VoiceAssistant sensorData={sensorData} locationData={locationData} />
         </div>
 
         {/* Location Tracker */}
