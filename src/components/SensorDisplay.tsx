@@ -39,26 +39,38 @@ const SensorDisplay = () => {
     const handleMotion = (event: DeviceMotionEvent) => {
       const acc = event.accelerationIncludingGravity;
       if (acc) {
-        setSensorData(prev => ({
-          ...prev,
-          acceleration: {
-            x: acc.x || 0,
-            y: acc.y || 0,
-            z: acc.z || 0
-          }
-        }));
+        setSensorData(prev => {
+          const newData = {
+            ...prev,
+            acceleration: {
+              x: acc.x || 0,
+              y: acc.y || 0,
+              z: acc.z || 0
+            }
+          };
+          
+          // Dispatch event for voice assistant
+          window.dispatchEvent(new CustomEvent('sensorUpdate', { detail: newData }));
+          return newData;
+        });
       }
     };
 
     const handleOrientation = (event: DeviceOrientationEvent) => {
-      setSensorData(prev => ({
-        ...prev,
-        gyroscope: {
-          alpha: event.alpha || 0,
-          beta: event.beta || 0,
-          gamma: event.gamma || 0
-        }
-      }));
+      setSensorData(prev => {
+        const newData = {
+          ...prev,
+          gyroscope: {
+            alpha: event.alpha || 0,
+            beta: event.beta || 0,
+            gamma: event.gamma || 0
+          }
+        };
+        
+        // Dispatch event for voice assistant
+        window.dispatchEvent(new CustomEvent('sensorUpdate', { detail: newData }));
+        return newData;
+      });
     };
 
     window.addEventListener('devicemotion', handleMotion);

@@ -27,13 +27,17 @@ const LocationTracker = () => {
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        setLocation({
+        const newLocation = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           accuracy: position.coords.accuracy,
           speed: position.coords.speed,
-        });
+        };
+        setLocation(newLocation);
         setIsTracking(true);
+        
+        // Dispatch event for voice assistant
+        window.dispatchEvent(new CustomEvent('locationUpdate', { detail: newLocation }));
       },
       (error) => {
         console.error('Location error:', error);
