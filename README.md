@@ -3,6 +3,8 @@
 A Smart Rider Assistance System that provides real-time data, alerts, and seamless UI powered by **React + TypeScript + Vite + Tailwind + shadcn-ui**.
 This project is designed for riders who need reliable, fast, and intuitive tools for navigation, safety, and reporting.
 
+Live Demo:- https://aesthetic-gnome-15138a.netlify.app/
+
 <img width="1920" height="1080" alt="Screenshot_2025-11-23_20-56-50" src="https://github.com/user-attachments/assets/74117723-f334-4ca5-b917-f418fc36f882" />
 <img width="1920" height="1080" alt="Screenshot_2025-11-23_20-56-57" src="https://github.com/user-attachments/assets/66bc75e5-2e35-41d5-9134-2893ab3c80ba" />
 
@@ -63,7 +65,7 @@ npm run dev
 ```
 
 Your app will start on:
-👉 **[http://localhost:5173](http://localhost:5173)**
+👉 **(https://aesthetic-gnome-15138a.netlify.app/)**
 
 ---
 
