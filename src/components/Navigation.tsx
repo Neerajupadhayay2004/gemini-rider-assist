@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Navigation as NavIcon, 
   MapPin, 
@@ -20,7 +21,8 @@ import {
   Square,
   Target,
   Locate,
-  Navigation2
+  Navigation2,
+  Globe
 } from 'lucide-react';
 import { useVibration } from '@/hooks/useVibration';
 import { toast } from 'sonner';
@@ -37,19 +39,16 @@ interface NavigationProps {
 
 interface NavigationStep {
   id: number;
-  instruction: string;
   direction: 'straight' | 'left' | 'right' | 'uturn' | 'destination';
-  distance: number; // in meters
-  distanceText: string;
-  hazard?: string;
-  ecoTip?: string;
+  distance: number;
+  hazardKey?: string;
+  ecoTipKey?: string;
   lat: number;
   lng: number;
 }
 
 interface RouteInfo {
-  totalDistance: string;
-  estimatedTime: string;
+  totalDistance: number;
   ecoScore: number;
   hazards: number;
   steps: NavigationStep[];
@@ -57,11 +56,474 @@ interface RouteInfo {
   endLocation: { lat: number; lng: number };
 }
 
+// Multi-language translations
+const translations: Record<string, Record<string, string>> = {
+  'hi-IN': {
+    // Directions
+    straight: 'सीधे जाएं',
+    left: 'बाएं मुड़ें',
+    right: 'दाएं मुड़ें',
+    uturn: 'यू-टर्न लें',
+    destination: 'आप अपनी मंज़िल पर पहुंच गए!',
+    towards: 'की तरफ',
+    // Distance
+    meters: 'मीटर',
+    km: 'किलोमीटर',
+    in: 'में',
+    // Hazards
+    busyIntersection: 'व्यस्त चौराहा - सावधान रहें',
+    schoolZone: 'स्कूल ज़ोन - धीमी गति',
+    sharpTurn: 'तेज़ मोड़ - धीमे चलें',
+    // Eco tips
+    steadySpeed: 'स्थिर गति बनाए रखें - ईंधन बचाएं',
+    engineBraking: 'इंजन ब्रेकिंग का उपयोग करें',
+    ecoMode: 'इको मोड सक्रिय रखें',
+    // UI
+    enterDestination: 'मंज़िल दर्ज करें',
+    startRide: 'राइड शुरू',
+    stop: 'रुकें',
+    repeat: 'दोहराएं',
+    currentLocation: 'वर्तमान स्थिति',
+    live: 'लाइव',
+    searchingGPS: 'GPS सिग्नल ढूंढ रहे हैं...',
+    distance: 'दूरी',
+    time: 'समय',
+    eco: 'इको',
+    hazardsLabel: 'खतरे',
+    now: 'अभी',
+    step: 'चरण',
+    of: 'का',
+    distanceTraveled: 'तय की गई दूरी',
+    currentSpeed: 'वर्तमान गति',
+    navigationStarted: 'नेविगेशन शुरू',
+    navigationStopped: 'नेविगेशन बंद',
+    pleaseEnterDest: 'कृपया मंज़िल दर्ज करें',
+    waitForGPS: 'GPS सिग्नल की प्रतीक्षा करें',
+    congratulations: 'बधाई हो!',
+    warning: 'चेतावनी',
+    ecoTip: 'इको टिप',
+    getReady: 'तैयार रहें!',
+    totalDistance: 'कुल दूरी',
+    estimatedTime: 'अनुमानित समय',
+    minutes: 'मिनट',
+    home: 'घर',
+    office: 'ऑफिस',
+    petrolPump: 'पेट्रोल पंप',
+    hospital: 'अस्पताल',
+    market: 'बाज़ार'
+  },
+  'en-US': {
+    straight: 'Go straight',
+    left: 'Turn left',
+    right: 'Turn right',
+    uturn: 'Take U-turn',
+    destination: 'You have reached your destination!',
+    towards: 'towards',
+    meters: 'meters',
+    km: 'kilometers',
+    in: 'in',
+    busyIntersection: 'Busy intersection - Be careful',
+    schoolZone: 'School zone - Slow down',
+    sharpTurn: 'Sharp turn - Reduce speed',
+    steadySpeed: 'Maintain steady speed - Save fuel',
+    engineBraking: 'Use engine braking',
+    ecoMode: 'Keep eco mode active',
+    enterDestination: 'Enter destination',
+    startRide: 'Start Ride',
+    stop: 'Stop',
+    repeat: 'Repeat',
+    currentLocation: 'Current Location',
+    live: 'LIVE',
+    searchingGPS: 'Searching for GPS signal...',
+    distance: 'Distance',
+    time: 'Time',
+    eco: 'Eco',
+    hazardsLabel: 'Hazards',
+    now: 'Now',
+    step: 'Step',
+    of: 'of',
+    distanceTraveled: 'Distance Traveled',
+    currentSpeed: 'Current Speed',
+    navigationStarted: 'Navigation started',
+    navigationStopped: 'Navigation stopped',
+    pleaseEnterDest: 'Please enter destination',
+    waitForGPS: 'Waiting for GPS signal',
+    congratulations: 'Congratulations!',
+    warning: 'Warning',
+    ecoTip: 'Eco Tip',
+    getReady: 'Get ready!',
+    totalDistance: 'Total Distance',
+    estimatedTime: 'Estimated Time',
+    minutes: 'minutes',
+    home: 'Home',
+    office: 'Office',
+    petrolPump: 'Petrol Pump',
+    hospital: 'Hospital',
+    market: 'Market'
+  },
+  'es-ES': {
+    straight: 'Siga recto',
+    left: 'Gire a la izquierda',
+    right: 'Gire a la derecha',
+    uturn: 'Haga un giro en U',
+    destination: '¡Ha llegado a su destino!',
+    towards: 'hacia',
+    meters: 'metros',
+    km: 'kilómetros',
+    in: 'en',
+    busyIntersection: 'Intersección concurrida - Tenga cuidado',
+    schoolZone: 'Zona escolar - Reduzca velocidad',
+    sharpTurn: 'Curva cerrada - Reduzca velocidad',
+    steadySpeed: 'Mantenga velocidad constante - Ahorre combustible',
+    engineBraking: 'Use freno motor',
+    ecoMode: 'Mantenga modo eco activo',
+    enterDestination: 'Ingrese destino',
+    startRide: 'Iniciar',
+    stop: 'Parar',
+    repeat: 'Repetir',
+    currentLocation: 'Ubicación actual',
+    live: 'EN VIVO',
+    searchingGPS: 'Buscando señal GPS...',
+    distance: 'Distancia',
+    time: 'Tiempo',
+    eco: 'Eco',
+    hazardsLabel: 'Peligros',
+    now: 'Ahora',
+    step: 'Paso',
+    of: 'de',
+    distanceTraveled: 'Distancia recorrida',
+    currentSpeed: 'Velocidad actual',
+    navigationStarted: 'Navegación iniciada',
+    navigationStopped: 'Navegación detenida',
+    pleaseEnterDest: 'Por favor ingrese destino',
+    waitForGPS: 'Esperando señal GPS',
+    congratulations: '¡Felicidades!',
+    warning: 'Advertencia',
+    ecoTip: 'Consejo Eco',
+    getReady: '¡Prepárese!',
+    totalDistance: 'Distancia total',
+    estimatedTime: 'Tiempo estimado',
+    minutes: 'minutos',
+    home: 'Casa',
+    office: 'Oficina',
+    petrolPump: 'Gasolinera',
+    hospital: 'Hospital',
+    market: 'Mercado'
+  },
+  'fr-FR': {
+    straight: 'Continuez tout droit',
+    left: 'Tournez à gauche',
+    right: 'Tournez à droite',
+    uturn: 'Faites demi-tour',
+    destination: 'Vous êtes arrivé à destination!',
+    towards: 'vers',
+    meters: 'mètres',
+    km: 'kilomètres',
+    in: 'dans',
+    busyIntersection: 'Carrefour fréquenté - Soyez prudent',
+    schoolZone: 'Zone scolaire - Ralentissez',
+    sharpTurn: 'Virage serré - Réduisez la vitesse',
+    steadySpeed: 'Maintenez une vitesse stable - Économisez du carburant',
+    engineBraking: 'Utilisez le frein moteur',
+    ecoMode: 'Gardez le mode éco actif',
+    enterDestination: 'Entrez la destination',
+    startRide: 'Démarrer',
+    stop: 'Arrêter',
+    repeat: 'Répéter',
+    currentLocation: 'Position actuelle',
+    live: 'EN DIRECT',
+    searchingGPS: 'Recherche du signal GPS...',
+    distance: 'Distance',
+    time: 'Temps',
+    eco: 'Éco',
+    hazardsLabel: 'Dangers',
+    now: 'Maintenant',
+    step: 'Étape',
+    of: 'sur',
+    distanceTraveled: 'Distance parcourue',
+    currentSpeed: 'Vitesse actuelle',
+    navigationStarted: 'Navigation démarrée',
+    navigationStopped: 'Navigation arrêtée',
+    pleaseEnterDest: 'Veuillez entrer la destination',
+    waitForGPS: 'En attente du signal GPS',
+    congratulations: 'Félicitations!',
+    warning: 'Attention',
+    ecoTip: 'Conseil Éco',
+    getReady: 'Préparez-vous!',
+    totalDistance: 'Distance totale',
+    estimatedTime: 'Temps estimé',
+    minutes: 'minutes',
+    home: 'Maison',
+    office: 'Bureau',
+    petrolPump: 'Station-service',
+    hospital: 'Hôpital',
+    market: 'Marché'
+  },
+  'de-DE': {
+    straight: 'Geradeaus fahren',
+    left: 'Links abbiegen',
+    right: 'Rechts abbiegen',
+    uturn: 'Wenden',
+    destination: 'Sie haben Ihr Ziel erreicht!',
+    towards: 'Richtung',
+    meters: 'Meter',
+    km: 'Kilometer',
+    in: 'in',
+    busyIntersection: 'Belebte Kreuzung - Vorsicht',
+    schoolZone: 'Schulzone - Langsam fahren',
+    sharpTurn: 'Scharfe Kurve - Geschwindigkeit reduzieren',
+    steadySpeed: 'Gleichmäßige Geschwindigkeit - Kraftstoff sparen',
+    engineBraking: 'Motorbremse verwenden',
+    ecoMode: 'Eco-Modus aktiv halten',
+    enterDestination: 'Ziel eingeben',
+    startRide: 'Starten',
+    stop: 'Stopp',
+    repeat: 'Wiederholen',
+    currentLocation: 'Aktueller Standort',
+    live: 'LIVE',
+    searchingGPS: 'GPS-Signal wird gesucht...',
+    distance: 'Entfernung',
+    time: 'Zeit',
+    eco: 'Öko',
+    hazardsLabel: 'Gefahren',
+    now: 'Jetzt',
+    step: 'Schritt',
+    of: 'von',
+    distanceTraveled: 'Zurückgelegte Strecke',
+    currentSpeed: 'Aktuelle Geschwindigkeit',
+    navigationStarted: 'Navigation gestartet',
+    navigationStopped: 'Navigation beendet',
+    pleaseEnterDest: 'Bitte Ziel eingeben',
+    waitForGPS: 'Warten auf GPS-Signal',
+    congratulations: 'Herzlichen Glückwunsch!',
+    warning: 'Warnung',
+    ecoTip: 'Öko-Tipp',
+    getReady: 'Machen Sie sich bereit!',
+    totalDistance: 'Gesamtdistanz',
+    estimatedTime: 'Geschätzte Zeit',
+    minutes: 'Minuten',
+    home: 'Zuhause',
+    office: 'Büro',
+    petrolPump: 'Tankstelle',
+    hospital: 'Krankenhaus',
+    market: 'Markt'
+  },
+  'pt-BR': {
+    straight: 'Siga em frente',
+    left: 'Vire à esquerda',
+    right: 'Vire à direita',
+    uturn: 'Faça retorno',
+    destination: 'Você chegou ao seu destino!',
+    towards: 'em direção a',
+    meters: 'metros',
+    km: 'quilômetros',
+    in: 'em',
+    busyIntersection: 'Cruzamento movimentado - Cuidado',
+    schoolZone: 'Zona escolar - Reduza a velocidade',
+    sharpTurn: 'Curva fechada - Reduza a velocidade',
+    steadySpeed: 'Mantenha velocidade constante - Economize combustível',
+    engineBraking: 'Use freio motor',
+    ecoMode: 'Mantenha modo eco ativo',
+    enterDestination: 'Digite o destino',
+    startRide: 'Iniciar',
+    stop: 'Parar',
+    repeat: 'Repetir',
+    currentLocation: 'Localização atual',
+    live: 'AO VIVO',
+    searchingGPS: 'Procurando sinal GPS...',
+    distance: 'Distância',
+    time: 'Tempo',
+    eco: 'Eco',
+    hazardsLabel: 'Perigos',
+    now: 'Agora',
+    step: 'Passo',
+    of: 'de',
+    distanceTraveled: 'Distância percorrida',
+    currentSpeed: 'Velocidade atual',
+    navigationStarted: 'Navegação iniciada',
+    navigationStopped: 'Navegação parada',
+    pleaseEnterDest: 'Por favor digite o destino',
+    waitForGPS: 'Aguardando sinal GPS',
+    congratulations: 'Parabéns!',
+    warning: 'Aviso',
+    ecoTip: 'Dica Eco',
+    getReady: 'Prepare-se!',
+    totalDistance: 'Distância total',
+    estimatedTime: 'Tempo estimado',
+    minutes: 'minutos',
+    home: 'Casa',
+    office: 'Escritório',
+    petrolPump: 'Posto de gasolina',
+    hospital: 'Hospital',
+    market: 'Mercado'
+  },
+  'ja-JP': {
+    straight: 'まっすぐ進んでください',
+    left: '左折してください',
+    right: '右折してください',
+    uturn: 'Uターンしてください',
+    destination: '目的地に到着しました！',
+    towards: '方向へ',
+    meters: 'メートル',
+    km: 'キロメートル',
+    in: '後',
+    busyIntersection: '混雑した交差点 - ご注意ください',
+    schoolZone: 'スクールゾーン - 減速してください',
+    sharpTurn: '急カーブ - 速度を落としてください',
+    steadySpeed: '一定速度を維持 - 燃料を節約',
+    engineBraking: 'エンジンブレーキを使用',
+    ecoMode: 'エコモードを維持',
+    enterDestination: '目的地を入力',
+    startRide: 'スタート',
+    stop: '停止',
+    repeat: '繰り返す',
+    currentLocation: '現在地',
+    live: 'ライブ',
+    searchingGPS: 'GPS信号を検索中...',
+    distance: '距離',
+    time: '時間',
+    eco: 'エコ',
+    hazardsLabel: '危険',
+    now: '現在',
+    step: 'ステップ',
+    of: '/',
+    distanceTraveled: '移動距離',
+    currentSpeed: '現在の速度',
+    navigationStarted: 'ナビゲーション開始',
+    navigationStopped: 'ナビゲーション停止',
+    pleaseEnterDest: '目的地を入力してください',
+    waitForGPS: 'GPS信号を待っています',
+    congratulations: 'おめでとうございます！',
+    warning: '警告',
+    ecoTip: 'エコヒント',
+    getReady: '準備してください！',
+    totalDistance: '総距離',
+    estimatedTime: '推定時間',
+    minutes: '分',
+    home: '自宅',
+    office: 'オフィス',
+    petrolPump: 'ガソリンスタンド',
+    hospital: '病院',
+    market: '市場'
+  },
+  'zh-CN': {
+    straight: '直行',
+    left: '左转',
+    right: '右转',
+    uturn: '掉头',
+    destination: '您已到达目的地！',
+    towards: '朝向',
+    meters: '米',
+    km: '公里',
+    in: '后',
+    busyIntersection: '繁忙路口 - 请小心',
+    schoolZone: '学校区域 - 请减速',
+    sharpTurn: '急转弯 - 请减速',
+    steadySpeed: '保持稳定速度 - 节省燃料',
+    engineBraking: '使用发动机制动',
+    ecoMode: '保持环保模式',
+    enterDestination: '输入目的地',
+    startRide: '开始',
+    stop: '停止',
+    repeat: '重复',
+    currentLocation: '当前位置',
+    live: '实时',
+    searchingGPS: '正在搜索GPS信号...',
+    distance: '距离',
+    time: '时间',
+    eco: '环保',
+    hazardsLabel: '危险',
+    now: '现在',
+    step: '步骤',
+    of: '/',
+    distanceTraveled: '已行驶距离',
+    currentSpeed: '当前速度',
+    navigationStarted: '导航已开始',
+    navigationStopped: '导航已停止',
+    pleaseEnterDest: '请输入目的地',
+    waitForGPS: '等待GPS信号',
+    congratulations: '恭喜！',
+    warning: '警告',
+    ecoTip: '环保提示',
+    getReady: '准备好！',
+    totalDistance: '总距离',
+    estimatedTime: '预计时间',
+    minutes: '分钟',
+    home: '家',
+    office: '办公室',
+    petrolPump: '加油站',
+    hospital: '医院',
+    market: '市场'
+  },
+  'ar-SA': {
+    straight: 'استمر في الطريق',
+    left: 'انعطف يسارًا',
+    right: 'انعطف يمينًا',
+    uturn: 'استدر للخلف',
+    destination: 'لقد وصلت إلى وجهتك!',
+    towards: 'باتجاه',
+    meters: 'متر',
+    km: 'كيلومتر',
+    in: 'في',
+    busyIntersection: 'تقاطع مزدحم - كن حذرًا',
+    schoolZone: 'منطقة مدرسة - أبطئ السرعة',
+    sharpTurn: 'منعطف حاد - خفف السرعة',
+    steadySpeed: 'حافظ على سرعة ثابتة - وفر الوقود',
+    engineBraking: 'استخدم فرملة المحرك',
+    ecoMode: 'أبق وضع الاقتصاد نشطًا',
+    enterDestination: 'أدخل الوجهة',
+    startRide: 'ابدأ',
+    stop: 'توقف',
+    repeat: 'كرر',
+    currentLocation: 'الموقع الحالي',
+    live: 'مباشر',
+    searchingGPS: 'جاري البحث عن إشارة GPS...',
+    distance: 'المسافة',
+    time: 'الوقت',
+    eco: 'اقتصادي',
+    hazardsLabel: 'مخاطر',
+    now: 'الآن',
+    step: 'خطوة',
+    of: 'من',
+    distanceTraveled: 'المسافة المقطوعة',
+    currentSpeed: 'السرعة الحالية',
+    navigationStarted: 'بدأ التنقل',
+    navigationStopped: 'توقف التنقل',
+    pleaseEnterDest: 'الرجاء إدخال الوجهة',
+    waitForGPS: 'في انتظار إشارة GPS',
+    congratulations: 'تهانينا!',
+    warning: 'تحذير',
+    ecoTip: 'نصيحة اقتصادية',
+    getReady: 'استعد!',
+    totalDistance: 'المسافة الكلية',
+    estimatedTime: 'الوقت المقدر',
+    minutes: 'دقائق',
+    home: 'المنزل',
+    office: 'المكتب',
+    petrolPump: 'محطة وقود',
+    hospital: 'مستشفى',
+    market: 'سوق'
+  }
+};
+
+const languages = [
+  { code: 'hi-IN', name: 'हिंदी', flag: '🇮🇳' },
+  { code: 'en-US', name: 'English', flag: '🇺🇸' },
+  { code: 'es-ES', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr-FR', name: 'Français', flag: '🇫🇷' },
+  { code: 'de-DE', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'pt-BR', name: 'Português', flag: '🇧🇷' },
+  { code: 'ja-JP', name: '日本語', flag: '🇯🇵' },
+  { code: 'zh-CN', name: '中文', flag: '🇨🇳' },
+  { code: 'ar-SA', name: 'العربية', flag: '🇸🇦' },
+];
+
 const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) => {
   const [destination, setDestination] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [language, setLanguage] = useState('hi-IN');
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [distanceToNextStep, setDistanceToNextStep] = useState<number | null>(null);
   const [totalDistanceTraveled, setTotalDistanceTraveled] = useState(0);
@@ -71,9 +533,12 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
   const voiceIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { patterns } = useVibration();
 
-  // Calculate distance between two GPS points (Haversine formula)
+  const t = useCallback((key: string): string => {
+    return translations[language]?.[key] || translations['en-US'][key] || key;
+  }, [language]);
+
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371000; // Earth's radius in meters
+    const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -83,65 +548,52 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
     return R * c;
   };
 
-  // Generate route based on destination (simulated but based on real current location)
   const generateRoute = useCallback((dest: string, currentLat: number, currentLng: number): RouteInfo => {
-    // Generate waypoints based on current location
-    const stepDistance = 0.002; // ~200m per step
+    const stepDistance = 0.002;
     const steps: NavigationStep[] = [
       {
         id: 1,
-        instruction: `${dest} की तरफ सीधे जाएं`,
         direction: 'straight',
         distance: 500,
-        distanceText: '500 मीटर',
-        ecoTip: 'स्थिर गति बनाए रखें - ईंधन बचाएं',
+        ecoTipKey: 'steadySpeed',
         lat: currentLat + stepDistance,
         lng: currentLng
       },
       {
         id: 2,
-        instruction: 'बाएं मुड़ें',
         direction: 'left',
         distance: 200,
-        distanceText: '200 मीटर',
-        hazard: 'व्यस्त चौराहा - सावधान रहें',
+        hazardKey: 'busyIntersection',
         lat: currentLat + stepDistance,
         lng: currentLng - stepDistance
       },
       {
         id: 3,
-        instruction: 'सीधे चलते रहें',
         direction: 'straight',
         distance: 1000,
-        distanceText: '1 किलोमीटर',
-        ecoTip: 'इंजन ब्रेकिंग का उपयोग करें',
+        ecoTipKey: 'engineBraking',
         lat: currentLat + stepDistance * 3,
         lng: currentLng - stepDistance
       },
       {
         id: 4,
-        instruction: 'दाएं मुड़ें',
         direction: 'right',
         distance: 300,
-        distanceText: '300 मीटर',
-        hazard: 'स्कूल ज़ोन - धीमी गति',
+        hazardKey: 'schoolZone',
         lat: currentLat + stepDistance * 3,
         lng: currentLng
       },
       {
         id: 5,
-        instruction: `${dest} - आप अपनी मंज़िल पर पहुंच गए!`,
         direction: 'destination',
         distance: 0,
-        distanceText: '0 मीटर',
         lat: currentLat + stepDistance * 4,
         lng: currentLng + stepDistance
       }
     ];
 
     return {
-      totalDistance: '2.0 km',
-      estimatedTime: '8 मिनट',
+      totalDistance: 2000,
       ecoScore: 85,
       hazards: 2,
       steps,
@@ -150,32 +602,47 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
     };
   }, []);
 
+  const getInstructionText = useCallback((step: NavigationStep, dest: string): string => {
+    if (step.direction === 'destination') {
+      return `${dest} - ${t('destination')}`;
+    }
+    return `${t(step.direction)} ${t('towards')} ${dest}`;
+  }, [t]);
+
+  const formatDistanceText = useCallback((meters: number): string => {
+    if (meters >= 1000) {
+      return `${(meters / 1000).toFixed(1)} ${t('km')}`;
+    }
+    return `${Math.round(meters)} ${t('meters')}`;
+  }, [t]);
+
   const speakInstruction = useCallback((text: string, force: boolean = false) => {
     if (!voiceEnabled && !force) return;
     
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'hi-IN';
+    utterance.lang = language;
     utterance.rate = 0.9;
     utterance.pitch = 1;
     
     const voices = window.speechSynthesis.getVoices();
-    const hindiVoice = voices.find(v => v.lang.includes('hi'));
-    if (hindiVoice) utterance.voice = hindiVoice;
+    const langCode = language.split('-')[0];
+    const matchingVoice = voices.find(v => v.lang.includes(langCode));
+    if (matchingVoice) utterance.voice = matchingVoice;
     
     window.speechSynthesis.speak(utterance);
-  }, [voiceEnabled]);
+  }, [voiceEnabled, language]);
 
   const startNavigation = () => {
     if (!destination.trim()) {
-      toast.error('कृपया मंज़िल दर्ज करें');
-      speakInstruction('कृपया मंज़िल दर्ज करें', true);
+      toast.error(t('pleaseEnterDest'));
+      speakInstruction(t('pleaseEnterDest'), true);
       return;
     }
 
     if (!locationData) {
-      toast.error('GPS सिग्नल की प्रतीक्षा करें');
-      speakInstruction('GPS सिग्नल की प्रतीक्षा करें', true);
+      toast.error(t('waitForGPS'));
+      speakInstruction(t('waitForGPS'), true);
       return;
     }
 
@@ -188,26 +655,20 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
     lastSpokenStepRef.current = -1;
     lastLocationRef.current = { lat: locationData.latitude, lng: locationData.longitude };
     
-    // Announce start
-    const startMsg = `नेविगेशन शुरू। आपकी वर्तमान स्थिति से ${destination} तक। कुल दूरी ${route.totalDistance}, अनुमानित समय ${route.estimatedTime}। ${route.steps[0].instruction}`;
+    const startMsg = `${t('navigationStarted')}. ${t('totalDistance')} ${formatDistanceText(route.totalDistance)}, ${t('estimatedTime')} 8 ${t('minutes')}. ${getInstructionText(route.steps[0], destination)}`;
     speakInstruction(startMsg, true);
     patterns.tap();
-    toast.success('नेविगेशन शुरू! Voice Assistant auto-started');
+    toast.success(t('navigationStarted'));
     
-    // Trigger ride start callback (auto-start voice assistant)
     onRideStart?.();
-
-    // Start continuous voice updates
     startVoiceUpdates();
   };
 
   const startVoiceUpdates = () => {
-    // Clear any existing interval
     if (voiceIntervalRef.current) {
       clearInterval(voiceIntervalRef.current);
     }
 
-    // Update every 10 seconds with current status
     voiceIntervalRef.current = setInterval(() => {
       if (!isNavigating || !locationData || !routeInfo) return;
 
@@ -216,12 +677,10 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
       
       if (currentStepData && distanceToNextStep !== null) {
         if (distanceToNextStep > 100) {
-          // Far from next step
-          const statusMsg = `${Math.round(distanceToNextStep)} मीटर में ${currentStepData.instruction}। वर्तमान गति ${speed} किलोमीटर प्रति घंटा।`;
+          const statusMsg = `${t('in')} ${formatDistanceText(distanceToNextStep)}, ${getInstructionText(currentStepData, destination)}. ${t('currentSpeed')} ${speed} km/h.`;
           speakInstruction(statusMsg);
         } else if (distanceToNextStep <= 100 && distanceToNextStep > 30) {
-          // Approaching next step
-          speakInstruction(`${Math.round(distanceToNextStep)} मीटर में ${currentStepData.instruction}। तैयार रहें!`);
+          speakInstruction(`${t('in')} ${formatDistanceText(distanceToNextStep)}, ${getInstructionText(currentStepData, destination)}. ${t('getReady')}`);
           patterns.warning();
         }
       }
@@ -241,19 +700,17 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
       voiceIntervalRef.current = null;
     }
     
-    toast.info('नेविगेशन बंद');
-    speakInstruction('नेविगेशन बंद', true);
+    toast.info(t('navigationStopped'));
+    speakInstruction(t('navigationStopped'), true);
     onRideStop?.();
   };
 
-  // Live location tracking and step advancement
   useEffect(() => {
     if (!isNavigating || !locationData || !routeInfo) return;
 
     const currentStepData = routeInfo.steps[currentStep];
     if (!currentStepData) return;
 
-    // Calculate distance to current step target
     const distance = calculateDistance(
       locationData.latitude,
       locationData.longitude,
@@ -262,7 +719,6 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
     );
     setDistanceToNextStep(distance);
 
-    // Track distance traveled
     if (lastLocationRef.current) {
       const traveled = calculateDistance(
         lastLocationRef.current.lat,
@@ -270,33 +726,30 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
         locationData.latitude,
         locationData.longitude
       );
-      if (traveled > 1) { // Only update if moved more than 1 meter
+      if (traveled > 1) {
         setTotalDistanceTraveled(prev => prev + traveled);
         lastLocationRef.current = { lat: locationData.latitude, lng: locationData.longitude };
       }
     }
 
-    // Check if reached current step (within 30 meters)
     if (distance < 30 && currentStep < routeInfo.steps.length - 1) {
-      // Advance to next step
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
       
       const nextStepData = routeInfo.steps[nextStep];
       
-      // Speak new instruction only once
       if (lastSpokenStepRef.current !== nextStep) {
         lastSpokenStepRef.current = nextStep;
         
-        let announcement = nextStepData.instruction;
+        let announcement = getInstructionText(nextStepData, destination);
         
-        if (nextStepData.hazard) {
+        if (nextStepData.hazardKey) {
           patterns.warning();
-          announcement += `। चेतावनी: ${nextStepData.hazard}`;
+          announcement += `. ${t('warning')}: ${t(nextStepData.hazardKey)}`;
         }
         
-        if (nextStepData.ecoTip) {
-          announcement += `। इको टिप: ${nextStepData.ecoTip}`;
+        if (nextStepData.ecoTipKey) {
+          announcement += `. ${t('ecoTip')}: ${t(nextStepData.ecoTipKey)}`;
         }
         
         speakInstruction(announcement, true);
@@ -304,16 +757,14 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
       }
     }
 
-    // Check if reached destination
     if (currentStep === routeInfo.steps.length - 1 && distance < 30) {
-      speakInstruction('बधाई हो! आप अपनी मंज़िल पर पहुंच गए!', true);
+      speakInstruction(`${t('congratulations')} ${t('destination')}`, true);
       patterns.success();
       stopNavigation();
     }
 
   }, [locationData, isNavigating, routeInfo, currentStep]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (voiceIntervalRef.current) {
@@ -332,12 +783,13 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
     }
   };
 
-  const formatDistance = (meters: number): string => {
-    if (meters >= 1000) {
-      return `${(meters / 1000).toFixed(1)} km`;
-    }
-    return `${Math.round(meters)} m`;
-  };
+  const quickDestinations = [
+    { key: 'home', icon: '🏠' },
+    { key: 'office', icon: '🏢' },
+    { key: 'petrolPump', icon: '⛽' },
+    { key: 'hospital', icon: '🏥' },
+    { key: 'market', icon: '🛒' }
+  ];
 
   return (
     <Card className="glass-card neon-border overflow-hidden">
@@ -345,10 +797,28 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
         <CardTitle className="flex items-center gap-3 text-foreground">
           <NavIcon className="w-6 h-6 text-primary" />
           AI Navigation
-          <Badge variant="outline" className="ml-auto bg-primary/20 text-primary border-primary">
-            <Leaf className="w-3 h-3 mr-1" />
-            Eco Mode
-          </Badge>
+          <div className="ml-auto flex items-center gap-2">
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger className="w-[130px] h-8 text-xs bg-background/50">
+                <Globe className="w-3 h-3 mr-1" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    <span className="flex items-center gap-2">
+                      <span>{lang.flag}</span>
+                      <span>{lang.name}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Badge variant="outline" className="bg-primary/20 text-primary border-primary">
+              <Leaf className="w-3 h-3 mr-1" />
+              {t('eco')}
+            </Badge>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 space-y-4">
@@ -356,13 +826,13 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
         <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
           <Locate className="w-5 h-5 text-primary animate-pulse" />
           <div className="flex-1">
-            <p className="text-xs text-muted-foreground">वर्तमान स्थिति (Live)</p>
+            <p className="text-xs text-muted-foreground">{t('currentLocation')} ({t('live')})</p>
             {locationData ? (
               <p className="text-sm font-mono text-foreground">
                 {locationData.latitude.toFixed(6)}°N, {locationData.longitude.toFixed(6)}°E
               </p>
             ) : (
-              <p className="text-sm text-warning animate-pulse">GPS सिग्नल ढूंढ रहे हैं...</p>
+              <p className="text-sm text-warning animate-pulse">{t('searchingGPS')}</p>
             )}
           </div>
           {locationData?.speed && (
@@ -381,7 +851,7 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
                 <Input
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
-                  placeholder="मंज़िल दर्ज करें (जहां जाना है)..."
+                  placeholder={t('enterDestination')}
                   className="pl-10 bg-muted/50 border-border"
                 />
               </div>
@@ -391,22 +861,22 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
                 disabled={!locationData}
               >
                 <Play className="w-4 h-4 mr-2" />
-                राइड शुरू
+                {t('startRide')}
               </Button>
             </div>
             
             {/* Quick destinations */}
             <div className="flex flex-wrap gap-2">
-              {['घर', 'ऑफिस', 'पेट्रोल पंप', 'अस्पताल', 'बाज़ार'].map((place) => (
+              {quickDestinations.map((place) => (
                 <Button
-                  key={place}
+                  key={place.key}
                   variant="outline"
                   size="sm"
-                  onClick={() => setDestination(place)}
+                  onClick={() => setDestination(t(place.key))}
                   className="text-xs border-border hover:bg-muted"
                 >
-                  <MapPin className="w-3 h-3 mr-1" />
-                  {place}
+                  <span className="mr-1">{place.icon}</span>
+                  {t(place.key)}
                 </Button>
               ))}
             </div>
@@ -421,7 +891,7 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
               <div className="absolute top-2 right-2">
                 <Badge className="bg-background/80 text-foreground animate-pulse">
                   <Navigation2 className="w-3 h-3 mr-1" />
-                  LIVE
+                  {t('live')}
                 </Badge>
               </div>
               
@@ -433,27 +903,27 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
               
               {distanceToNextStep !== null && (
                 <p className="text-3xl font-black text-primary mb-2">
-                  {formatDistance(distanceToNextStep)}
+                  {formatDistanceText(distanceToNextStep)}
                 </p>
               )}
               
               <p className="text-lg font-bold text-foreground mb-1">
-                {routeInfo.steps[currentStep].instruction}
+                {getInstructionText(routeInfo.steps[currentStep], destination)}
               </p>
               
               <p className="text-sm text-muted-foreground">
-                Step {currentStep + 1} of {routeInfo.steps.length}
+                {t('step')} {currentStep + 1} {t('of')} {routeInfo.steps.length}
               </p>
             </div>
 
             {/* Live Stats */}
             <div className="grid grid-cols-2 gap-2">
               <div className="text-center p-3 bg-muted/30 rounded-lg border border-primary/30">
-                <p className="text-xs text-muted-foreground">तय की गई दूरी</p>
-                <p className="text-lg font-bold text-primary">{formatDistance(totalDistanceTraveled)}</p>
+                <p className="text-xs text-muted-foreground">{t('distanceTraveled')}</p>
+                <p className="text-lg font-bold text-primary">{formatDistanceText(totalDistanceTraveled)}</p>
               </div>
               <div className="text-center p-3 bg-muted/30 rounded-lg border border-secondary/30">
-                <p className="text-xs text-muted-foreground">वर्तमान गति</p>
+                <p className="text-xs text-muted-foreground">{t('currentSpeed')}</p>
                 <p className="text-lg font-bold text-secondary">
                   {locationData?.speed ? Math.round(locationData.speed * 3.6) : 0} km/h
                 </p>
@@ -461,21 +931,21 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
             </div>
 
             {/* Hazard Warning */}
-            {routeInfo.steps[currentStep].hazard && (
+            {routeInfo.steps[currentStep].hazardKey && (
               <div className="flex items-center gap-3 p-3 bg-warning/20 rounded-lg border border-warning/50 animate-pulse">
                 <AlertTriangle className="w-5 h-5 text-warning" />
                 <span className="text-sm font-medium text-warning">
-                  {routeInfo.steps[currentStep].hazard}
+                  {t(routeInfo.steps[currentStep].hazardKey!)}
                 </span>
               </div>
             )}
 
             {/* Eco Tip */}
-            {routeInfo.steps[currentStep].ecoTip && (
+            {routeInfo.steps[currentStep].ecoTipKey && (
               <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg border border-primary/30">
                 <Leaf className="w-5 h-5 text-primary" />
                 <span className="text-sm text-primary">
-                  {routeInfo.steps[currentStep].ecoTip}
+                  {t(routeInfo.steps[currentStep].ecoTipKey!)}
                 </span>
               </div>
             )}
@@ -484,22 +954,22 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
             <div className="grid grid-cols-4 gap-2">
               <div className="text-center p-2 bg-muted/30 rounded-lg">
                 <Route className="w-4 h-4 mx-auto text-primary mb-1" />
-                <p className="text-xs text-muted-foreground">कुल दूरी</p>
-                <p className="text-sm font-bold text-foreground">{routeInfo.totalDistance}</p>
+                <p className="text-xs text-muted-foreground">{t('totalDistance')}</p>
+                <p className="text-sm font-bold text-foreground">{formatDistanceText(routeInfo.totalDistance)}</p>
               </div>
               <div className="text-center p-2 bg-muted/30 rounded-lg">
                 <Clock className="w-4 h-4 mx-auto text-secondary mb-1" />
-                <p className="text-xs text-muted-foreground">समय</p>
-                <p className="text-sm font-bold text-foreground">{routeInfo.estimatedTime}</p>
+                <p className="text-xs text-muted-foreground">{t('time')}</p>
+                <p className="text-sm font-bold text-foreground">8 {t('minutes')}</p>
               </div>
               <div className="text-center p-2 bg-muted/30 rounded-lg">
                 <Leaf className="w-4 h-4 mx-auto text-primary mb-1" />
-                <p className="text-xs text-muted-foreground">इको</p>
+                <p className="text-xs text-muted-foreground">{t('eco')}</p>
                 <p className="text-sm font-bold text-primary">{routeInfo.ecoScore}%</p>
               </div>
               <div className="text-center p-2 bg-muted/30 rounded-lg">
                 <AlertTriangle className="w-4 h-4 mx-auto text-warning mb-1" />
-                <p className="text-xs text-muted-foreground">खतरे</p>
+                <p className="text-xs text-muted-foreground">{t('hazardsLabel')}</p>
                 <p className="text-sm font-bold text-warning">{routeInfo.hazards}</p>
               </div>
             </div>
@@ -524,11 +994,11 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
                     {getDirectionIcon(step.direction)}
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs text-foreground line-clamp-1">{step.instruction}</p>
-                    <p className="text-xs text-muted-foreground">{step.distanceText}</p>
+                    <p className="text-xs text-foreground line-clamp-1">{getInstructionText(step, destination)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDistanceText(step.distance)}</p>
                   </div>
                   {idx === currentStep && (
-                    <Badge className="bg-primary text-primary-foreground text-xs">अभी</Badge>
+                    <Badge className="bg-primary text-primary-foreground text-xs">{t('now')}</Badge>
                   )}
                 </div>
               ))}
@@ -547,18 +1017,18 @@ const Navigation = ({ locationData, onRideStart, onRideStop }: NavigationProps) 
                 variant="outline"
                 onClick={() => {
                   const step = routeInfo.steps[currentStep];
-                  speakInstruction(`${formatDistance(distanceToNextStep || 0)} में ${step.instruction}`, true);
+                  speakInstruction(`${t('in')} ${formatDistanceText(distanceToNextStep || 0)}, ${getInstructionText(step, destination)}`, true);
                 }}
                 className="flex-1 border-border"
               >
-                🔊 दोहराएं
+                🔊 {t('repeat')}
               </Button>
               <Button
                 variant="destructive"
                 onClick={stopNavigation}
               >
                 <Square className="w-4 h-4 mr-2" />
-                रुकें
+                {t('stop')}
               </Button>
             </div>
           </div>
