@@ -8,88 +8,83 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Cyberpunk Dark Base */
-    --background: 240 10% 5%;
-    --foreground: 180 100% 95%;
+    /* Eco-Friendly Dark Theme - Nature Inspired */
+    --background: 160 20% 4%;
+    --foreground: 150 80% 95%;
 
-    /* Holographic Cards */
-    --card: 240 8% 8%;
-    --card-foreground: 180 100% 95%;
+    /* Forest Green Cards */
+    --card: 160 15% 8%;
+    --card-foreground: 150 80% 95%;
 
-    --popover: 240 8% 10%;
-    --popover-foreground: 180 100% 95%;
+    --popover: 160 15% 10%;
+    --popover-foreground: 150 80% 95%;
 
-    /* Neon Cyan Primary */
-    --primary: 180 100% 50%;
-    --primary-foreground: 240 10% 5%;
+    /* Emerald Green Primary */
+    --primary: 160 84% 45%;
+    --primary-foreground: 160 20% 4%;
 
-    /* Neon Pink Secondary */
-    --secondary: 330 100% 60%;
-    --secondary-foreground: 240 10% 5%;
+    /* Ocean Teal Secondary */
+    --secondary: 180 70% 45%;
+    --secondary-foreground: 160 20% 4%;
 
-    /* Dark Muted */
-    --muted: 240 8% 15%;
-    --muted-foreground: 180 50% 70%;
+    /* Earth Muted */
+    --muted: 160 10% 15%;
+    --muted-foreground: 150 40% 65%;
 
-    /* Purple Accent */
-    --accent: 270 100% 60%;
-    --accent-foreground: 240 10% 5%;
+    /* Leaf Accent */
+    --accent: 140 70% 50%;
+    --accent-foreground: 160 20% 4%;
 
-    /* Warning Colors */
-    --warning: 45 100% 50%;
-    --warning-foreground: 240 10% 5%;
+    /* Warning - Sunset Orange */
+    --warning: 35 100% 50%;
+    --warning-foreground: 160 20% 4%;
 
-    --destructive: 0 100% 50%;
+    /* Success - Fresh Green */
+    --success: 145 80% 45%;
+    --success-foreground: 160 20% 4%;
+
+    --destructive: 0 85% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Glass Borders */
-    --border: 180 50% 20%;
-    --input: 180 50% 20%;
-    --ring: 180 100% 50%;
+    /* Natural Borders */
+    --border: 160 30% 20%;
+    --input: 160 30% 20%;
+    --ring: 160 84% 45%;
 
     --radius: 1rem;
 
-    /* Custom Gradients */
-    --gradient-cyber: linear-gradient(135deg, hsl(180 100% 50% / 0.2), hsl(330 100% 60% / 0.2));
-    --gradient-neon: linear-gradient(90deg, hsl(180 100% 50%), hsl(270 100% 60%), hsl(330 100% 60%));
-    --gradient-depth: linear-gradient(180deg, hsl(240 10% 8% / 0.9), hsl(240 10% 5%));
+    /* Eco Gradients */
+    --gradient-eco: linear-gradient(135deg, hsl(160 84% 45% / 0.2), hsl(140 70% 50% / 0.2));
+    --gradient-nature: linear-gradient(90deg, hsl(160 84% 45%), hsl(180 70% 45%), hsl(140 70% 50%));
+    --gradient-forest: linear-gradient(180deg, hsl(160 15% 8% / 0.9), hsl(160 20% 4%));
     
-    /* Glow Effects */
-    --glow-cyan: 0 0 20px hsl(180 100% 50% / 0.5), 0 0 40px hsl(180 100% 50% / 0.3);
-    --glow-pink: 0 0 20px hsl(330 100% 60% / 0.5), 0 0 40px hsl(330 100% 60% / 0.3);
-    --glow-purple: 0 0 20px hsl(270 100% 60% / 0.5), 0 0 40px hsl(270 100% 60% / 0.3);
+    /* Natural Glow Effects */
+    --glow-emerald: 0 0 20px hsl(160 84% 45% / 0.5), 0 0 40px hsl(160 84% 45% / 0.3);
+    --glow-teal: 0 0 20px hsl(180 70% 45% / 0.5), 0 0 40px hsl(180 70% 45% / 0.3);
+    --glow-leaf: 0 0 20px hsl(140 70% 50% / 0.5), 0 0 40px hsl(140 70% 50% / 0.3);
 
-    --radius: 1rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 160 15% 6%;
+    --sidebar-foreground: 150 80% 95%;
+    --sidebar-primary: 160 84% 45%;
+    --sidebar-primary-foreground: 160 20% 4%;
+    --sidebar-accent: 160 10% 12%;
+    --sidebar-accent-foreground: 150 80% 95%;
+    --sidebar-border: 160 30% 18%;
+    --sidebar-ring: 160 84% 45%;
   }
 
   .dark {
-    /* Keep same as root - always dark theme */
-    --background: 240 10% 5%;
-    --foreground: 180 100% 95%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Eco Dark Theme */
+    --background: 160 20% 4%;
+    --foreground: 150 80% 95%;
+    --sidebar-background: 160 15% 6%;
+    --sidebar-foreground: 150 80% 95%;
+    --sidebar-primary: 160 84% 45%;
+    --sidebar-primary-foreground: 160 20% 4%;
+    --sidebar-accent: 160 10% 12%;
+    --sidebar-accent-foreground: 150 80% 95%;
+    --sidebar-border: 160 30% 18%;
+    --sidebar-ring: 160 84% 45%;
   }
 }
 
@@ -112,18 +107,18 @@ All colors MUST be HSL.
 
 @layer utilities {
   .glass-card {
-    background: linear-gradient(135deg, hsl(var(--card) / 0.7), hsl(var(--card) / 0.5));
+    background: linear-gradient(135deg, hsl(var(--card) / 0.8), hsl(var(--card) / 0.6));
     backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--border) / 0.3);
+    border: 1px solid hsl(var(--border) / 0.4);
   }
 
   .neon-text {
-    text-shadow: var(--glow-cyan);
+    text-shadow: var(--glow-emerald);
   }
 
   .neon-border {
     border: 2px solid hsl(var(--primary));
-    box-shadow: var(--glow-cyan), inset 0 0 20px hsl(var(--primary) / 0.1);
+    box-shadow: var(--glow-emerald), inset 0 0 20px hsl(var(--primary) / 0.1);
   }
 
   .glow-pulse {
@@ -132,10 +127,10 @@ All colors MUST be HSL.
 
   @keyframes glow-pulse {
     0%, 100% {
-      box-shadow: var(--glow-cyan);
+      box-shadow: var(--glow-emerald);
     }
     50% {
-      box-shadow: 0 0 30px hsl(180 100% 50% / 0.7), 0 0 60px hsl(180 100% 50% / 0.5);
+      box-shadow: 0 0 30px hsl(160 84% 45% / 0.7), 0 0 60px hsl(160 84% 45% / 0.5);
     }
   }
 
@@ -153,9 +148,40 @@ All colors MUST be HSL.
   }
 
   .gradient-text {
-    background: var(--gradient-neon);
+    background: var(--gradient-nature);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .eco-glow {
+    box-shadow: 0 0 30px hsl(160 84% 45% / 0.3), 0 0 60px hsl(140 70% 50% / 0.2);
+  }
+
+  .leaf-pattern {
+    background-image: 
+      radial-gradient(ellipse at 20% 80%, hsl(160 84% 45% / 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, hsl(140 70% 50% / 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, hsl(180 70% 45% / 0.05) 0%, transparent 70%);
+  }
+
+  .nature-shimmer {
+    background: linear-gradient(
+      45deg,
+      transparent 30%,
+      hsl(160 84% 45% / 0.1) 50%,
+      transparent 70%
+    );
+    background-size: 200% 200%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% {
+      background-position: 200% 200%;
+    }
+    50% {
+      background-position: 0% 0%;
+    }
   }
 }
