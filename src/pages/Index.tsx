@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Shield, Zap, Brain, Leaf, TreePine } from 'lucide-react';
 import SensorDisplay from '@/components/SensorDisplay';
 import LocationTracker from '@/components/LocationTracker';
@@ -11,6 +11,7 @@ import Navigation from '@/components/Navigation';
 import Dashboard from '@/components/Dashboard';
 import LiveMap from '@/components/LiveMap';
 import { useWeather } from '@/hooks/useWeather';
+import { toast } from 'sonner';
 
 interface SensorData {
   acceleration: { x: number; y: number; z: number };
@@ -26,7 +27,26 @@ interface LocationData {
 const Index = () => {
   const [sensorData, setSensorData] = useState<SensorData | undefined>();
   const [locationData, setLocationData] = useState<LocationData | undefined>();
+  const [isRideActive, setIsRideActive] = useState(false);
+  const voiceAssistantRef = useRef<{ startListening: () => void } | null>(null);
   const { weather, fetchWeather } = useWeather();
+
+  // Auto-start voice assistant when ride starts
+  const handleRideStart = () => {
+    setIsRideActive(true);
+    toast.success('राइड शुरू! Voice Assistant active');
+    
+    // Auto welcome message
+    const welcomeMsg = 'राइड शुरू! मैं आपका AI सहायक हूं। सुरक्षित यात्रा करें।';
+    const utterance = new SpeechSynthesisUtterance(welcomeMsg);
+    utterance.lang = 'hi-IN';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleRideStop = () => {
+    setIsRideActive(false);
+  };
 
   useEffect(() => {
     const handleSensorUpdate = (data: SensorData) => setSensorData(data);
@@ -85,8 +105,12 @@ const Index = () => {
 
         {/* Navigation & Map */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
-          <Navigation locationData={locationData} />
-          <LiveMap locationData={locationData} />
+          <Navigation 
+            locationData={locationData} 
+            onRideStart={handleRideStart}
+            onRideStop={handleRideStop}
+          />
+          <LiveMap locationData={locationData} isRideActive={isRideActive} />
         </div>
 
         {/* Dashboard */}

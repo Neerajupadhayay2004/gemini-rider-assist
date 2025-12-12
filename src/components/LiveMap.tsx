@@ -27,9 +27,10 @@ interface LiveMapProps {
     lng: number;
     severity: 'low' | 'medium' | 'high';
   }>;
+  isRideActive?: boolean;
 }
 
-const LiveMap = ({ locationData, hazards = [] }: LiveMapProps) => {
+const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [zoom, setZoom] = useState(15);
   const [heading, setHeading] = useState(0);
@@ -200,10 +201,17 @@ const LiveMap = ({ locationData, hazards = [] }: LiveMapProps) => {
         <CardTitle className="flex items-center gap-3 text-foreground text-base">
           <Map className="w-5 h-5 text-primary" />
           Live Map
-          <Badge variant="outline" className="ml-auto bg-primary/20 text-primary border-primary text-xs">
-            <Navigation2 className="w-3 h-3 mr-1" />
-            Tracking
-          </Badge>
+          {isRideActive ? (
+            <Badge className="ml-auto bg-primary text-primary-foreground animate-pulse">
+              <Navigation2 className="w-3 h-3 mr-1" />
+              राइड चालू
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="ml-auto bg-muted/50 text-muted-foreground border-border text-xs">
+              <MapPin className="w-3 h-3 mr-1" />
+              Standby
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 relative">
@@ -250,14 +258,30 @@ const LiveMap = ({ locationData, hazards = [] }: LiveMapProps) => {
         </div>
 
         {/* Speed Indicator */}
-        {locationData?.speed && (
-          <div className="absolute bottom-2 right-2 bg-background/80 px-3 py-1 rounded-lg border border-border">
-            <p className="text-lg font-bold text-primary">{Math.round(locationData.speed)} km/h</p>
+        {locationData?.speed !== undefined && locationData?.speed !== null && (
+          <div className={`absolute bottom-2 right-2 px-3 py-1 rounded-lg border ${
+            isRideActive 
+              ? 'bg-primary/20 border-primary' 
+              : 'bg-background/80 border-border'
+          }`}>
+            <p className={`text-lg font-bold ${isRideActive ? 'text-primary' : 'text-foreground'}`}>
+              {Math.round(locationData.speed * 3.6)} km/h
+            </p>
+          </div>
+        )}
+
+        {/* Ride Status */}
+        {isRideActive && (
+          <div className="absolute bottom-2 left-2 bg-primary/20 px-3 py-1 rounded-lg border border-primary animate-pulse">
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
+              <span className="text-primary font-medium">नेविगेशन चालू</span>
+            </div>
           </div>
         )}
 
         {/* Hazard Legend */}
-        {hazards.length > 0 && (
+        {hazards.length > 0 && !isRideActive && (
           <div className="absolute bottom-2 left-2 bg-background/80 px-2 py-1 rounded-lg border border-border">
             <div className="flex items-center gap-1 text-xs">
               <AlertTriangle className="w-3 h-3 text-warning" />
