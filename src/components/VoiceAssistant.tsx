@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mic, MicOff, Volume2, VolumeX, Globe } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, Globe, WifiOff, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { offlineStorage } from '@/lib/offlineStorage';
+import { useVibration } from '@/hooks/useVibration';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -21,17 +23,25 @@ interface VoiceAssistantProps {
     longitude: number;
     speed: number | null;
   };
+  weatherData?: {
+    condition: string;
+    temperature: number;
+    riskLevel: string;
+    warnings: string[];
+  };
 }
 
-const VoiceAssistant = ({ sensorData, locationData }: VoiceAssistantProps) => {
+const VoiceAssistant = ({ sensorData, locationData, weatherData }: VoiceAssistantProps) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [transcript, setTranscript] = useState('');
   const [language, setLanguage] = useState('en-US');
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+  const { patterns } = useVibration();
 
   // Language options
   const languages = [
@@ -131,6 +141,36 @@ const VoiceAssistant = ({ sensorData, locationData }: VoiceAssistantProps) => {
     };
   }, [language]);
 
+  // Online/Offline detection
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      patterns.success();
+      toast({
+        title: "Back Online",
+        description: "AI features fully available",
+      });
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      patterns.warning();
+      toast({
+        title: "Offline Mode",
+        description: "Voice commands will be saved locally",
+        variant: "destructive",
+      });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   // Request microphone permission on mount
   useEffect(() => {
     const requestMicPermission = async () => {
@@ -186,10 +226,15 @@ const VoiceAssistant = ({ sensorData, locationData }: VoiceAssistantProps) => {
 
   const handleVoiceInput = async (text: string) => {
     console.log('Processing voice input:', text);
+    patterns.tap();
+    
     const userMessage: Message = { role: 'user', content: text };
     setMessages(prev => [...prev, userMessage]);
 
-    // Create context with sensor and location data
+    // Save command offline
+    await offlineStorage.saveVoiceCommand(text);
+
+    // Create comprehensive context with all data
     let contextInfo = '';
     if (sensorData) {
       const accelMag = Math.sqrt(
@@ -205,8 +250,23 @@ const VoiceAssistant = ({ sensorData, locationData }: VoiceAssistantProps) => {
         contextInfo += `, Speed: ${(locationData.speed * 3.6).toFixed(1)} km/h`;
       }
     }
+    if (weatherData) {
+      contextInfo += `\nWeather: ${weatherData.condition}, ${weatherData.temperature.toFixed(1)}°C, Risk: ${weatherData.riskLevel}`;
+      if (weatherData.warnings.length > 0) {
+        contextInfo += `. Warnings: ${weatherData.warnings.join(', ')}`;
+      }
+    }
 
     const enhancedMessage = text + contextInfo;
+
+    // Check if offline
+    if (!isOnline) {
+      const offlineResponse = getOfflineResponse(text);
+      const assistantMessage: Message = { role: 'assistant', content: offlineResponse };
+      setMessages(prev => [...prev, assistantMessage]);
+      speakText(offlineResponse);
+      return;
+    }
 
     try {
       console.log('Calling Gemini API...');
@@ -232,23 +292,66 @@ const VoiceAssistant = ({ sensorData, locationData }: VoiceAssistantProps) => {
         content: data.response 
       };
       setMessages(prev => [...prev, assistantMessage]);
-
-      // Speak the response
+      patterns.success();
       speakText(data.response);
 
     } catch (error) {
       console.error('Error calling Gemini:', error);
-      toast({
-        title: "AI Error",
-        description: error instanceof Error ? error.message : "Failed to get response from AI assistant",
-        variant: "destructive",
-      });
+      patterns.warning();
       
-      // Fallback response
-      const fallbackMsg = "I'm having trouble connecting to the AI service. Please check your internet connection.";
+      // Smart offline fallback
+      const fallbackMsg = getOfflineResponse(text);
       setMessages(prev => [...prev, { role: 'assistant', content: fallbackMsg }]);
       speakText(fallbackMsg);
     }
+  };
+
+  // Offline AI responses
+  const getOfflineResponse = (text: string): string => {
+    const lowerText = text.toLowerCase();
+    
+    if (lowerText.includes('speed') || lowerText.includes('fast')) {
+      const speed = locationData?.speed ? (locationData.speed * 3.6).toFixed(1) : 'unknown';
+      return `Your current speed is ${speed} kilometers per hour. ${Number(speed) > 60 ? 'Please slow down for safety.' : 'Speed is within safe limits.'}`;
+    }
+    
+    if (lowerText.includes('location') || lowerText.includes('where')) {
+      if (locationData) {
+        return `You are at latitude ${locationData.latitude.toFixed(4)} and longitude ${locationData.longitude.toFixed(4)}.`;
+      }
+      return 'GPS location is currently unavailable.';
+    }
+    
+    if (lowerText.includes('weather')) {
+      if (weatherData) {
+        return `Current weather is ${weatherData.condition} with ${weatherData.temperature.toFixed(1)} degrees. Risk level is ${weatherData.riskLevel}. ${weatherData.warnings.length > 0 ? 'Warning: ' + weatherData.warnings[0] : ''}`;
+      }
+      return 'Weather data is currently unavailable.';
+    }
+    
+    if (lowerText.includes('help') || lowerText.includes('emergency') || lowerText.includes('sos')) {
+      return 'For emergencies, use the SOS button below. It will alert your emergency contacts with your location.';
+    }
+    
+    if (lowerText.includes('safe') || lowerText.includes('danger')) {
+      const accelMag = sensorData ? Math.sqrt(
+        sensorData.acceleration.x ** 2 + sensorData.acceleration.y ** 2 + sensorData.acceleration.z ** 2
+      ) : 0;
+      if (accelMag > 15) {
+        return 'Warning! High acceleration detected. Please ride carefully.';
+      }
+      return 'Current riding conditions appear safe. Continue with normal precautions.';
+    }
+    
+    return "I'm currently offline, but I've saved your command. Basic features like location tracking and emergency SOS are still available. Full AI features will resume when online.";
+  };
+
+  const clearMessages = () => {
+    setMessages([]);
+    toast({
+      title: "Chat Cleared",
+      description: "Conversation history cleared",
+    });
   };
 
   const speakText = (text: string) => {
@@ -323,7 +426,15 @@ const VoiceAssistant = ({ sensorData, locationData }: VoiceAssistantProps) => {
   return (
     <Card className="glass-card p-6 neon-border">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-        <h2 className="text-2xl font-bold gradient-text">RiderGuard AI</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold gradient-text">RiderGuard AI</h2>
+          {!isOnline && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-destructive/20 rounded-full">
+              <WifiOff className="w-4 h-4 text-destructive" />
+              <span className="text-xs text-destructive">Offline</span>
+            </div>
+          )}
+        </div>
         
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
@@ -341,6 +452,17 @@ const VoiceAssistant = ({ sensorData, locationData }: VoiceAssistantProps) => {
               </SelectContent>
             </Select>
           </div>
+
+          {messages.length > 0 && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={clearMessages}
+              className="neon-border"
+            >
+              <Trash2 className="w-5 h-5 text-muted-foreground" />
+            </Button>
+          )}
           
           {isSpeaking && (
             <Button
