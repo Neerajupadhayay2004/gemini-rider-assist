@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, Zap, Brain } from 'lucide-react';
+import { Shield, Zap, Brain, Leaf, TreePine } from 'lucide-react';
 import SensorDisplay from '@/components/SensorDisplay';
 import LocationTracker from '@/components/LocationTracker';
 import VoiceAssistant from '@/components/VoiceAssistant';
@@ -7,6 +7,9 @@ import EmergencySOS from '@/components/EmergencySOS';
 import WeatherWarnings from '@/components/WeatherWarnings';
 import AdvancedAIFeatures from '@/components/AdvancedAIFeatures';
 import OfflineIndicator from '@/components/OfflineIndicator';
+import Navigation from '@/components/Navigation';
+import Dashboard from '@/components/Dashboard';
+import LiveMap from '@/components/LiveMap';
 import { useWeather } from '@/hooks/useWeather';
 
 interface SensorData {
@@ -42,10 +45,10 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-hidden leaf-pattern">
       <OfflineIndicator />
       
-      {/* Animated Background */}
+      {/* Eco Animated Background */}
       <div className="fixed inset-0 z-0">
         <div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute top-1/3 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
@@ -56,11 +59,12 @@ const Index = () => {
         {/* Hero Section */}
         <header className="text-center space-y-6 py-8">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <Shield className="w-16 h-16 text-primary float-animation" />
-            <h1 className="text-5xl md:text-7xl font-black gradient-text">RiderGuard AI</h1>
+            <TreePine className="w-12 h-12 text-primary float-animation" />
+            <h1 className="text-4xl md:text-6xl font-black gradient-text">EcoRider AI</h1>
+            <Leaf className="w-12 h-12 text-accent float-animation" style={{ animationDelay: '0.5s' }} />
           </div>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-            Advanced Collision Prevention & Rider Assistance System
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+            Eco-Friendly Navigation & Safety System
           </p>
           
           <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
@@ -69,15 +73,29 @@ const Index = () => {
               <span className="text-sm font-semibold">AI-Powered</span>
             </div>
             <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
-              <Zap className="w-5 h-5 text-secondary" />
-              <span className="text-sm font-semibold">Real-Time</span>
+              <Leaf className="w-5 h-5 text-accent" />
+              <span className="text-sm font-semibold">Eco-Friendly</span>
             </div>
             <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
-              <Shield className="w-5 h-5 text-accent" />
-              <span className="text-sm font-semibold">Offline Ready</span>
+              <Shield className="w-5 h-5 text-secondary" />
+              <span className="text-sm font-semibold">Safe & Secure</span>
             </div>
           </div>
         </header>
+
+        {/* Navigation & Map */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+          <Navigation locationData={locationData} />
+          <LiveMap locationData={locationData} />
+        </div>
+
+        {/* Dashboard */}
+        <div className="max-w-6xl mx-auto">
+          <Dashboard sensorData={sensorData} locationData={locationData} weatherData={weather ? {
+            condition: weather.condition,
+            temperature: weather.temperature
+          } : undefined} />
+        </div>
 
         {/* Voice Assistant */}
         <div className="max-w-4xl mx-auto">
@@ -107,14 +125,9 @@ const Index = () => {
           <AdvancedAIFeatures sensorData={sensorData} locationData={locationData} />
         </div>
 
-        {/* Location Tracker */}
-        <div className="max-w-4xl mx-auto">
+        {/* Location & Sensors */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
           <LocationTracker />
-        </div>
-
-        {/* Sensor Display */}
-        <div>
-          <h2 className="text-3xl font-bold text-center mb-6 gradient-text">Live Sensor Data</h2>
           <SensorDisplay />
         </div>
       </main>
