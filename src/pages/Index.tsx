@@ -34,12 +34,12 @@ const Index = () => {
   // Auto-start voice assistant when ride starts
   const handleRideStart = () => {
     setIsRideActive(true);
-    toast.success('राइड शुरू! Voice Assistant active');
+    toast.success('Ride started! Voice Assistant active');
     
-    // Auto welcome message
-    const welcomeMsg = 'राइड शुरू! मैं आपका AI सहायक हूं। सुरक्षित यात्रा करें।';
+    // Auto welcome message in English
+    const welcomeMsg = 'Ride started! I am your AI assistant. Have a safe journey.';
     const utterance = new SpeechSynthesisUtterance(welcomeMsg);
-    utterance.lang = 'hi-IN';
+    utterance.lang = 'en-US';
     utterance.rate = 0.9;
     window.speechSynthesis.speak(utterance);
   };
