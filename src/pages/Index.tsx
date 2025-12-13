@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Zap, Brain, Leaf, TreePine } from 'lucide-react';
+import { Shield, Zap, Brain, Leaf, TreePine, AlertTriangle } from 'lucide-react';
 import SensorDisplay from '@/components/SensorDisplay';
 import LocationTracker from '@/components/LocationTracker';
 import VoiceAssistant from '@/components/VoiceAssistant';
@@ -10,6 +10,7 @@ import OfflineIndicator from '@/components/OfflineIndicator';
 import Navigation from '@/components/Navigation';
 import Dashboard from '@/components/Dashboard';
 import LiveMap from '@/components/LiveMap';
+import TrafficAlerts from '@/components/TrafficAlerts';
 import { useWeather } from '@/hooks/useWeather';
 import { toast } from 'sonner';
 
@@ -100,6 +101,10 @@ const Index = () => {
               <Shield className="w-5 h-5 text-secondary" />
               <span className="text-sm font-semibold">Safe & Secure</span>
             </div>
+            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              <span className="text-sm font-semibold">Traffic Alerts</span>
+            </div>
           </div>
         </header>
 
@@ -140,12 +145,26 @@ const Index = () => {
           <EmergencySOS sensorData={sensorData} locationData={locationData} />
         </div>
 
-        {/* Weather & AI Analysis Grid */}
+        {/* Traffic Alerts & Weather */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+          <TrafficAlerts 
+            locationData={locationData} 
+            weatherData={weather ? {
+              condition: weather.condition,
+              temperature: weather.temperature,
+              humidity: 60,
+              windSpeed: 10,
+              visibility: 24000
+            } : undefined}
+          />
           <WeatherWarnings 
             latitude={locationData?.latitude} 
             longitude={locationData?.longitude} 
           />
+        </div>
+
+        {/* AI Analysis */}
+        <div className="max-w-6xl mx-auto">
           <AdvancedAIFeatures sensorData={sensorData} locationData={locationData} />
         </div>
 
