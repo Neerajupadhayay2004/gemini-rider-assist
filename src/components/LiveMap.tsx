@@ -10,7 +10,9 @@ import {
   ZoomOut,
   Compass,
   MapPin,
-  AlertTriangle
+  AlertTriangle,
+  Satellite,
+  Layers
 } from 'lucide-react';
 
 interface LiveMapProps {
@@ -35,8 +37,8 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
   const [zoom, setZoom] = useState(15);
   const [heading, setHeading] = useState(0);
   const [trail, setTrail] = useState<{x: number, y: number}[]>([]);
+  const [mapStyle, setMapStyle] = useState<'default' | 'satellite'>('default');
 
-  // Convert GPS to canvas coordinates (simplified)
   const gpsToCanvas = (lat: number, lng: number, centerLat: number, centerLng: number, canvasWidth: number, canvasHeight: number) => {
     const scale = zoom * 50;
     const x = canvasWidth / 2 + (lng - centerLng) * scale;
@@ -54,15 +56,14 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
     const width = canvas.width;
     const height = canvas.height;
 
-    // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // Draw dark background with grid
-    ctx.fillStyle = 'hsl(240, 10%, 8%)';
+    // Background
+    ctx.fillStyle = mapStyle === 'satellite' ? 'hsl(220, 20%, 12%)' : 'hsl(240, 10%, 8%)';
     ctx.fillRect(0, 0, width, height);
 
-    // Draw grid lines
-    ctx.strokeStyle = 'hsl(180, 50%, 15%)';
+    // Grid lines
+    ctx.strokeStyle = mapStyle === 'satellite' ? 'hsl(200, 30%, 20%)' : 'hsl(180, 50%, 15%)';
     ctx.lineWidth = 0.5;
     const gridSize = 30;
     for (let x = 0; x < width; x += gridSize) {
@@ -78,7 +79,7 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
       ctx.stroke();
     }
 
-    // Draw concentric circles (radar effect)
+    // Radar circles
     const centerX = width / 2;
     const centerY = height / 2;
     
@@ -89,7 +90,7 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
       ctx.stroke();
     }
 
-    // Draw trail
+    // Trail
     if (trail.length > 1) {
       ctx.beginPath();
       ctx.moveTo(trail[0].x, trail[0].y);
@@ -103,7 +104,7 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
       ctx.stroke();
     }
 
-    // Draw hazards
+    // Hazards
     hazards.forEach(hazard => {
       const pos = gpsToCanvas(hazard.lat, hazard.lng, locationData.latitude, locationData.longitude, width, height);
       
@@ -113,13 +114,11 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
         high: 'hsl(0, 100%, 50%)'
       };
       
-      // Hazard marker
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, 8, 0, Math.PI * 2);
       ctx.fillStyle = colors[hazard.severity];
       ctx.fill();
       
-      // Pulse effect
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, 15 + Math.sin(Date.now() / 200) * 5, 0, Math.PI * 2);
       ctx.strokeStyle = colors[hazard.severity];
@@ -127,8 +126,7 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
       ctx.stroke();
     });
 
-    // Draw current position (center)
-    // Outer glow
+    // Current position glow
     const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 30);
     gradient.addColorStop(0, 'hsla(180, 100%, 50%, 0.8)');
     gradient.addColorStop(0.5, 'hsla(180, 100%, 50%, 0.2)');
@@ -138,7 +136,7 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
     ctx.arc(centerX, centerY, 30, 0, Math.PI * 2);
     ctx.fill();
 
-    // Direction indicator (arrow)
+    // Direction arrow
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate((heading * Math.PI) / 180);
@@ -157,7 +155,7 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
     
     ctx.restore();
 
-    // Draw accuracy circle
+    // Accuracy circle
     if (locationData.accuracy) {
       const accuracyRadius = Math.min(locationData.accuracy * 2, 100);
       ctx.beginPath();
@@ -169,11 +167,11 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
       ctx.setLineDash([]);
     }
 
-    // Coordinates display
+    // Coordinates
     ctx.fillStyle = 'hsl(180, 100%, 95%)';
-    ctx.font = '12px monospace';
-    ctx.fillText(`${locationData.latitude.toFixed(6)}°N`, 10, height - 30);
-    ctx.fillText(`${locationData.longitude.toFixed(6)}°E`, 10, height - 15);
+    ctx.font = '10px monospace';
+    ctx.fillText(`${locationData.latitude.toFixed(6)}°N`, 10, height - 25);
+    ctx.fillText(`${locationData.longitude.toFixed(6)}°E`, 10, height - 10);
 
     // Update trail
     setTrail(prev => {
@@ -181,9 +179,8 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
       return newTrail.slice(-50);
     });
 
-  }, [locationData, zoom, heading, hazards]);
+  }, [locationData, zoom, heading, hazards, mapStyle]);
 
-  // Simulate heading changes based on gyroscope
   useEffect(() => {
     const handleOrientation = (e: DeviceOrientationEvent) => {
       if (e.alpha !== null) {
@@ -197,17 +194,17 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
 
   return (
     <Card className="glass-card neon-border overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-primary/20 to-secondary/20 py-3">
-        <CardTitle className="flex items-center gap-3 text-foreground text-base">
-          <Map className="w-5 h-5 text-primary" />
-          Live Map
+      <CardHeader className="bg-gradient-to-r from-primary/20 to-secondary/20 py-2 sm:py-3 px-3 sm:px-4">
+        <CardTitle className="flex items-center gap-2 sm:gap-3 text-foreground text-sm sm:text-base">
+          <Map className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+          <span className="truncate">Live Map</span>
           {isRideActive ? (
-            <Badge className="ml-auto bg-primary text-primary-foreground animate-pulse">
+            <Badge className="ml-auto bg-primary text-primary-foreground animate-pulse text-[10px] sm:text-xs">
               <Navigation2 className="w-3 h-3 mr-1" />
-              राइड चालू
+              Active
             </Badge>
           ) : (
-            <Badge variant="outline" className="ml-auto bg-muted/50 text-muted-foreground border-border text-xs">
+            <Badge variant="outline" className="ml-auto bg-muted/50 text-muted-foreground border-border text-[10px] sm:text-xs">
               <MapPin className="w-3 h-3 mr-1" />
               Standby
             </Badge>
@@ -219,52 +216,60 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
           ref={canvasRef}
           width={400}
           height={300}
-          className="w-full h-64 md:h-80"
+          className="w-full h-48 sm:h-64 md:h-80"
         />
         
         {/* Map Controls */}
-        <div className="absolute top-2 right-2 flex flex-col gap-2">
+        <div className="absolute top-2 right-2 flex flex-col gap-1 sm:gap-2">
           <Button
             size="icon"
             variant="outline"
             onClick={() => setZoom(z => Math.min(20, z + 1))}
-            className="w-8 h-8 bg-background/80 border-border"
+            className="w-7 h-7 sm:w-8 sm:h-8 bg-background/80 border-border"
           >
-            <ZoomIn className="w-4 h-4" />
+            <ZoomIn className="w-3 h-3 sm:w-4 sm:h-4" />
           </Button>
           <Button
             size="icon"
             variant="outline"
             onClick={() => setZoom(z => Math.max(10, z - 1))}
-            className="w-8 h-8 bg-background/80 border-border"
+            className="w-7 h-7 sm:w-8 sm:h-8 bg-background/80 border-border"
           >
-            <ZoomOut className="w-4 h-4" />
+            <ZoomOut className="w-3 h-3 sm:w-4 sm:h-4" />
           </Button>
           <Button
             size="icon"
             variant="outline"
-            className="w-8 h-8 bg-background/80 border-border"
+            className="w-7 h-7 sm:w-8 sm:h-8 bg-background/80 border-border"
           >
-            <Locate className="w-4 h-4" />
+            <Locate className="w-3 h-3 sm:w-4 sm:h-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => setMapStyle(s => s === 'default' ? 'satellite' : 'default')}
+            className="w-7 h-7 sm:w-8 sm:h-8 bg-background/80 border-border"
+          >
+            {mapStyle === 'default' ? <Satellite className="w-3 h-3 sm:w-4 sm:h-4" /> : <Layers className="w-3 h-3 sm:w-4 sm:h-4" />}
           </Button>
         </div>
 
         {/* Compass */}
-        <div className="absolute top-2 left-2 w-10 h-10 bg-background/80 rounded-full flex items-center justify-center border border-border">
+        <div className="absolute top-2 left-2 w-8 h-8 sm:w-10 sm:h-10 bg-background/80 rounded-full flex items-center justify-center border border-border">
           <Compass 
-            className="w-6 h-6 text-primary transition-transform duration-300" 
+            className="w-5 h-5 sm:w-6 sm:h-6 text-primary transition-transform duration-300" 
             style={{ transform: `rotate(${-heading}deg)` }}
           />
         </div>
 
         {/* Speed Indicator */}
         {locationData?.speed !== undefined && locationData?.speed !== null && (
-          <div className={`absolute bottom-2 right-2 px-3 py-1 rounded-lg border ${
+          <div className={`absolute bottom-2 right-2 px-2 sm:px-3 py-1 rounded-lg border ${
             isRideActive 
               ? 'bg-primary/20 border-primary' 
               : 'bg-background/80 border-border'
           }`}>
-            <p className={`text-lg font-bold ${isRideActive ? 'text-primary' : 'text-foreground'}`}>
+            <p className={`text-sm sm:text-lg font-bold ${isRideActive ? 'text-primary' : 'text-foreground'}`}>
               {Math.round(locationData.speed * 3.6)} km/h
             </p>
           </div>
@@ -272,10 +277,10 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
 
         {/* Ride Status */}
         {isRideActive && (
-          <div className="absolute bottom-2 left-2 bg-primary/20 px-3 py-1 rounded-lg border border-primary animate-pulse">
-            <div className="flex items-center gap-2 text-xs">
+          <div className="absolute bottom-2 left-2 bg-primary/20 px-2 sm:px-3 py-1 rounded-lg border border-primary animate-pulse">
+            <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs">
               <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
-              <span className="text-primary font-medium">नेविगेशन चालू</span>
+              <span className="text-primary font-medium">Navigation Active</span>
             </div>
           </div>
         )}
@@ -283,7 +288,7 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
         {/* Hazard Legend */}
         {hazards.length > 0 && !isRideActive && (
           <div className="absolute bottom-2 left-2 bg-background/80 px-2 py-1 rounded-lg border border-border">
-            <div className="flex items-center gap-1 text-xs">
+            <div className="flex items-center gap-1 text-[10px] sm:text-xs">
               <AlertTriangle className="w-3 h-3 text-warning" />
               <span className="text-warning">{hazards.length} hazards</span>
             </div>
@@ -293,8 +298,8 @@ const LiveMap = ({ locationData, hazards = [], isRideActive = false }: LiveMapPr
         {!locationData && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/50">
             <div className="text-center">
-              <MapPin className="w-8 h-8 text-muted-foreground mx-auto mb-2 animate-bounce" />
-              <p className="text-sm text-muted-foreground">GPS सिग्नल की प्रतीक्षा...</p>
+              <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground mx-auto mb-2 animate-bounce" />
+              <p className="text-xs sm:text-sm text-muted-foreground">Waiting for GPS signal...</p>
             </div>
           </div>
         )}
