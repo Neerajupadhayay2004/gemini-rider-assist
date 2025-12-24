@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Zap, Brain, Leaf, TreePine, AlertTriangle, Gauge, Mic } from 'lucide-react';
+import { Shield, Zap, Brain, Leaf, TreePine, AlertTriangle, Gauge, Mic, Activity } from 'lucide-react';
 import SensorDisplay from '@/components/SensorDisplay';
 import LocationTracker from '@/components/LocationTracker';
 import VoiceAssistant from '@/components/VoiceAssistant';
@@ -13,6 +13,7 @@ import LiveMap from '@/components/LiveMap';
 import TrafficAlerts from '@/components/TrafficAlerts';
 import SpeedLimitWarning from '@/components/SpeedLimitWarning';
 import VoiceCommandPanel from '@/components/VoiceCommandPanel';
+import CollisionDetection from '@/components/CollisionDetection';
 import { useWeather } from '@/hooks/useWeather';
 import { toast } from 'sonner';
 
@@ -117,6 +118,10 @@ const Index = () => {
               <Mic className="w-5 h-5 text-primary" />
               <span className="text-sm font-semibold">Voice Commands</span>
             </div>
+            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
+              <Activity className="w-5 h-5 text-destructive" />
+              <span className="text-sm font-semibold">Crash Detection</span>
+            </div>
           </div>
         </header>
 
@@ -171,9 +176,16 @@ const Index = () => {
           />
         </div>
 
-        {/* Emergency SOS */}
-        <div className="max-w-4xl mx-auto">
+        {/* Emergency SOS & Collision Detection */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
           <EmergencySOS sensorData={sensorData} locationData={locationData} />
+          <CollisionDetection 
+            sensorData={sensorData} 
+            locationData={locationData}
+            onEmergencyTrigger={() => {
+              toast.error('🆘 Emergency Alert Triggered by Collision Detection');
+            }}
+          />
         </div>
 
         {/* Traffic Alerts & Weather */}
