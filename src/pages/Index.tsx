@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Zap, Brain, Leaf, TreePine, AlertTriangle } from 'lucide-react';
+import { Shield, Zap, Brain, Leaf, TreePine, AlertTriangle, Gauge, Mic } from 'lucide-react';
 import SensorDisplay from '@/components/SensorDisplay';
 import LocationTracker from '@/components/LocationTracker';
 import VoiceAssistant from '@/components/VoiceAssistant';
@@ -11,6 +11,8 @@ import Navigation from '@/components/Navigation';
 import Dashboard from '@/components/Dashboard';
 import LiveMap from '@/components/LiveMap';
 import TrafficAlerts from '@/components/TrafficAlerts';
+import SpeedLimitWarning from '@/components/SpeedLimitWarning';
+import VoiceCommandPanel from '@/components/VoiceCommandPanel';
 import { useWeather } from '@/hooks/useWeather';
 import { toast } from 'sonner';
 
@@ -29,6 +31,7 @@ const Index = () => {
   const [sensorData, setSensorData] = useState<SensorData | undefined>();
   const [locationData, setLocationData] = useState<LocationData | undefined>();
   const [isRideActive, setIsRideActive] = useState(false);
+  const [language, setLanguage] = useState('en-US');
   const voiceAssistantRef = useRef<{ startListening: () => void } | null>(null);
   const { weather, fetchWeather } = useWeather();
 
@@ -40,13 +43,18 @@ const Index = () => {
     // Auto welcome message in English
     const welcomeMsg = 'Ride started! I am your AI assistant. Have a safe journey.';
     const utterance = new SpeechSynthesisUtterance(welcomeMsg);
-    utterance.lang = 'en-US';
+    utterance.lang = language;
     utterance.rate = 0.9;
     window.speechSynthesis.speak(utterance);
   };
 
   const handleRideStop = () => {
     setIsRideActive(false);
+  };
+
+  const handleNavigateTo = (destination: string) => {
+    toast.success(`Setting destination: ${destination}`);
+    // Could integrate with Navigation component
   };
 
   useEffect(() => {
@@ -88,7 +96,7 @@ const Index = () => {
             Eco-Friendly Navigation & Safety System
           </p>
           
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
             <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
               <Brain className="w-5 h-5 text-primary" />
               <span className="text-sm font-semibold">AI-Powered</span>
@@ -102,8 +110,12 @@ const Index = () => {
               <span className="text-sm font-semibold">Safe & Secure</span>
             </div>
             <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
-              <AlertTriangle className="w-5 h-5 text-warning" />
-              <span className="text-sm font-semibold">Traffic Alerts</span>
+              <Gauge className="w-5 h-5 text-warning" />
+              <span className="text-sm font-semibold">Speed Limits</span>
+            </div>
+            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
+              <Mic className="w-5 h-5 text-primary" />
+              <span className="text-sm font-semibold">Voice Commands</span>
             </div>
           </div>
         </header>
@@ -116,6 +128,25 @@ const Index = () => {
             onRideStop={handleRideStop}
           />
           <LiveMap locationData={locationData} isRideActive={isRideActive} />
+        </div>
+
+        {/* Speed Limit & Voice Commands */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+          <SpeedLimitWarning 
+            locationData={locationData} 
+            language={language}
+          />
+          <VoiceCommandPanel
+            language={language}
+            onNavigateTo={handleNavigateTo}
+            onStartNavigation={handleRideStart}
+            onStopNavigation={handleRideStop}
+            locationData={locationData}
+            weatherData={weather ? {
+              condition: weather.condition,
+              temperature: weather.temperature
+            } : undefined}
+          />
         </div>
 
         {/* Dashboard */}
