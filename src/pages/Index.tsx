@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Zap, Brain, Leaf, TreePine, AlertTriangle, Gauge, Mic, Activity, Palette } from 'lucide-react';
+import { Shield, Zap, Brain, Leaf, TreePine, AlertTriangle, Gauge, Mic, Activity, Palette, HardDrive } from 'lucide-react';
 import SensorDisplay from '@/components/SensorDisplay';
 import LocationTracker from '@/components/LocationTracker';
 import VoiceAssistant from '@/components/VoiceAssistant';
@@ -15,6 +15,7 @@ import SpeedLimitWarning from '@/components/SpeedLimitWarning';
 import VoiceCommandPanel from '@/components/VoiceCommandPanel';
 import CollisionDetection from '@/components/CollisionDetection';
 import ThemeToggle from '@/components/ThemeToggle';
+import OfflineMapManager from '@/components/OfflineMapManager';
 import { useWeather } from '@/hooks/useWeather';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { toast } from 'sonner';
@@ -138,6 +139,10 @@ const Index = () => {
               <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               <span className="text-xs sm:text-sm font-semibold">Theme Toggle</span>
             </div>
+            <div className="flex items-center gap-1.5 sm:gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full neon-border">
+              <HardDrive className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" />
+              <span className="text-xs sm:text-sm font-semibold">Offline Maps</span>
+            </div>
           </div>
         </header>
 
@@ -225,6 +230,11 @@ const Index = () => {
         {/* AI Analysis */}
         <div className="max-w-6xl mx-auto">
           <AdvancedAIFeatures sensorData={sensorData} locationData={locationData} />
+        </div>
+
+        {/* Offline Maps */}
+        <div className="max-w-6xl mx-auto">
+          <OfflineMapManager locationData={locationData} />
         </div>
 
         {/* Location & Sensors */}
