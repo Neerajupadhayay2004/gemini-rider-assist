@@ -85,26 +85,27 @@ const OfflineIndicator = () => {
     }
   };
 
+  // Move to left side to avoid conflict with theme toggle
   return (
-    <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-full glass-card neon-border transition-all ${
-      isOnline ? 'border-green-500/50' : 'border-destructive/50 animate-pulse'
+    <div className={`fixed top-4 left-4 z-50 flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full glass-card neon-border transition-all ${
+      isOnline ? 'border-success/50' : 'border-destructive/50 animate-pulse'
     }`}>
       {isOnline ? (
         <>
-          <Wifi className="w-5 h-5 text-green-500" />
-          <span className="text-sm font-medium text-green-500">Online</span>
+          <Wifi className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
+          <span className="text-xs sm:text-sm font-medium text-success hidden sm:inline">Online</span>
         </>
       ) : (
         <>
-          <WifiOff className="w-5 h-5 text-destructive" />
-          <span className="text-sm font-medium text-destructive">Offline</span>
+          <WifiOff className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
+          <span className="text-xs sm:text-sm font-medium text-destructive hidden sm:inline">Offline</span>
         </>
       )}
 
       {pendingData > 0 && (
-        <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
-          <Database className="w-4 h-4 text-warning" />
-          <span className="text-xs text-warning">{pendingData} pending</span>
+        <div className="flex items-center gap-1 sm:gap-2 ml-1 sm:ml-2 pl-1 sm:pl-2 border-l border-border">
+          <Database className="w-3 h-3 sm:w-4 sm:h-4 text-warning" />
+          <span className="text-[10px] sm:text-xs text-warning">{pendingData}</span>
           
           {isOnline && (
             <Button
@@ -112,9 +113,9 @@ const OfflineIndicator = () => {
               size="icon"
               onClick={syncData}
               disabled={syncing}
-              className="w-6 h-6"
+              className="w-5 h-5 sm:w-6 sm:h-6"
             >
-              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 ${syncing ? 'animate-spin' : ''}`} />
             </Button>
           )}
         </div>
