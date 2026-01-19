@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Zap, Brain, Leaf, TreePine, AlertTriangle, Gauge, Mic, Activity } from 'lucide-react';
+import { Shield, Zap, Brain, Leaf, TreePine, AlertTriangle, Gauge, Mic, Activity, Palette } from 'lucide-react';
 import SensorDisplay from '@/components/SensorDisplay';
 import LocationTracker from '@/components/LocationTracker';
 import VoiceAssistant from '@/components/VoiceAssistant';
@@ -14,7 +14,9 @@ import TrafficAlerts from '@/components/TrafficAlerts';
 import SpeedLimitWarning from '@/components/SpeedLimitWarning';
 import VoiceCommandPanel from '@/components/VoiceCommandPanel';
 import CollisionDetection from '@/components/CollisionDetection';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useWeather } from '@/hooks/useWeather';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import { toast } from 'sonner';
 
 interface SensorData {
@@ -35,6 +37,7 @@ const Index = () => {
   const [language, setLanguage] = useState('en-US');
   const voiceAssistantRef = useRef<{ startListening: () => void } | null>(null);
   const { weather, fetchWeather } = useWeather();
+  const { theme, resolvedTheme, setTheme } = useThemeContext();
 
   // Auto-start voice assistant when ride starts
   const handleRideStart = () => {
@@ -78,55 +81,68 @@ const Index = () => {
     <div className="min-h-screen bg-background relative overflow-hidden leaf-pattern">
       <OfflineIndicator />
       
+      {/* Theme Toggle - Fixed Position */}
+      <div className="fixed top-4 right-4 z-50 sm:top-6 sm:right-6">
+        <ThemeToggle 
+          theme={theme} 
+          resolvedTheme={resolvedTheme} 
+          setTheme={setTheme} 
+        />
+      </div>
+      
       {/* Eco Animated Background */}
       <div className="fixed inset-0 z-0">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-1/3 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-0 left-0 w-64 sm:w-96 h-64 sm:h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-1/3 right-0 w-64 sm:w-96 h-64 sm:h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-0 left-1/3 w-64 sm:w-96 h-64 sm:h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
-      <main className="relative z-10 container mx-auto px-4 py-8 space-y-8">
+      <main className="relative z-10 container mx-auto px-4 py-8 space-y-6 sm:space-y-8">
         {/* Hero Section */}
-        <header className="text-center space-y-6 py-8">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <TreePine className="w-12 h-12 text-primary float-animation" />
-            <h1 className="text-4xl md:text-6xl font-black gradient-text">EcoRider AI</h1>
-            <Leaf className="w-12 h-12 text-accent float-animation" style={{ animationDelay: '0.5s' }} />
+        <header className="text-center space-y-4 sm:space-y-6 py-4 sm:py-8 pt-16 sm:pt-8">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-4">
+            <TreePine className="w-8 h-8 sm:w-12 sm:h-12 text-primary float-animation" />
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black gradient-text">EcoRider AI</h1>
+            <Leaf className="w-8 h-8 sm:w-12 sm:h-12 text-accent float-animation" style={{ animationDelay: '0.5s' }} />
           </div>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
             Eco-Friendly Navigation & Safety System
           </p>
           
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
-            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
-              <Brain className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold">AI-Powered</span>
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-4 sm:mt-6 px-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full neon-border">
+              <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              <span className="text-xs sm:text-sm font-semibold">AI-Powered</span>
             </div>
-            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
-              <Leaf className="w-5 h-5 text-accent" />
-              <span className="text-sm font-semibold">Eco-Friendly</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full neon-border">
+              <Leaf className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+              <span className="text-xs sm:text-sm font-semibold">Eco-Friendly</span>
             </div>
-            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
-              <Shield className="w-5 h-5 text-secondary" />
-              <span className="text-sm font-semibold">Safe & Secure</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full neon-border">
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" />
+              <span className="text-xs sm:text-sm font-semibold">Safe & Secure</span>
             </div>
-            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
-              <Gauge className="w-5 h-5 text-warning" />
-              <span className="text-sm font-semibold">Speed Limits</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full neon-border">
+              <Gauge className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
+              <span className="text-xs sm:text-sm font-semibold">Speed Limits</span>
             </div>
-            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
-              <Mic className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold">Voice Commands</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full neon-border">
+              <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              <span className="text-xs sm:text-sm font-semibold">Voice Commands</span>
             </div>
-            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full neon-border">
-              <Activity className="w-5 h-5 text-destructive" />
-              <span className="text-sm font-semibold">Crash Detection</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full neon-border">
+              <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
+              <span className="text-xs sm:text-sm font-semibold">Crash Detection</span>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full neon-border">
+              <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              <span className="text-xs sm:text-sm font-semibold">Theme Toggle</span>
             </div>
           </div>
         </header>
 
         {/* Navigation & Map */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 max-w-6xl mx-auto">
           <Navigation 
             locationData={locationData} 
             onRideStart={handleRideStart}
@@ -136,7 +152,7 @@ const Index = () => {
         </div>
 
         {/* Speed Limit & Voice Commands */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-6xl mx-auto">
           <SpeedLimitWarning 
             locationData={locationData} 
             language={language}
@@ -177,7 +193,7 @@ const Index = () => {
         </div>
 
         {/* Emergency SOS & Collision Detection */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 max-w-6xl mx-auto">
           <EmergencySOS sensorData={sensorData} locationData={locationData} />
           <CollisionDetection 
             sensorData={sensorData} 
@@ -189,7 +205,7 @@ const Index = () => {
         </div>
 
         {/* Traffic Alerts & Weather */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 max-w-6xl mx-auto">
           <TrafficAlerts 
             locationData={locationData} 
             weatherData={weather ? {
@@ -212,7 +228,7 @@ const Index = () => {
         </div>
 
         {/* Location & Sensors */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 max-w-6xl mx-auto">
           <LocationTracker />
           <SensorDisplay />
         </div>
