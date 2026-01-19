@@ -7,7 +7,22 @@ All colors MUST be HSL.
 */
 
 @layer base {
-  :root {
+  /* Smooth theme transitions */
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition: background-color 0.4s ease-out,
+                border-color 0.4s ease-out,
+                color 0.3s ease-out,
+                box-shadow 0.4s ease-out,
+                fill 0.3s ease-out,
+                stroke 0.3s ease-out !important;
+  }
+
+  /* ==================== DARK THEME (Default) ==================== */
+  :root,
+  .dark {
     /* Eco-Friendly Dark Theme - Nature Inspired */
     --background: 160 20% 4%;
     --foreground: 150 80% 95%;
@@ -73,18 +88,69 @@ All colors MUST be HSL.
     --sidebar-ring: 160 84% 45%;
   }
 
-  .dark {
-    /* Eco Dark Theme */
-    --background: 160 20% 4%;
-    --foreground: 150 80% 95%;
-    --sidebar-background: 160 15% 6%;
-    --sidebar-foreground: 150 80% 95%;
-    --sidebar-primary: 160 84% 45%;
-    --sidebar-primary-foreground: 160 20% 4%;
-    --sidebar-accent: 160 10% 12%;
-    --sidebar-accent-foreground: 150 80% 95%;
-    --sidebar-border: 160 30% 18%;
-    --sidebar-ring: 160 84% 45%;
+  /* ==================== LIGHT THEME ==================== */
+  .light {
+    /* Eco-Friendly Light Theme - Fresh Nature */
+    --background: 140 40% 97%;
+    --foreground: 160 40% 10%;
+
+    /* Light Leaf Cards */
+    --card: 140 30% 98%;
+    --card-foreground: 160 40% 10%;
+
+    --popover: 140 25% 99%;
+    --popover-foreground: 160 40% 10%;
+
+    /* Deep Emerald Primary */
+    --primary: 160 70% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Ocean Teal Secondary */
+    --secondary: 180 60% 35%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Soft Earth Muted */
+    --muted: 140 20% 92%;
+    --muted-foreground: 160 30% 40%;
+
+    /* Fresh Leaf Accent */
+    --accent: 140 60% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Warning - Warm Sunset */
+    --warning: 35 95% 45%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Success - Vibrant Green */
+    --success: 145 70% 35%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Natural Light Borders */
+    --border: 160 25% 85%;
+    --input: 160 25% 85%;
+    --ring: 160 70% 35%;
+
+    /* Light Eco Gradients */
+    --gradient-eco: linear-gradient(135deg, hsl(160 70% 35% / 0.1), hsl(140 60% 40% / 0.1));
+    --gradient-nature: linear-gradient(90deg, hsl(160 70% 35%), hsl(180 60% 35%), hsl(140 60% 40%));
+    --gradient-forest: linear-gradient(180deg, hsl(140 30% 98% / 0.95), hsl(140 40% 97%));
+    
+    /* Subtle Light Glow Effects */
+    --glow-emerald: 0 0 15px hsl(160 70% 35% / 0.25), 0 0 30px hsl(160 70% 35% / 0.15);
+    --glow-teal: 0 0 15px hsl(180 60% 35% / 0.25), 0 0 30px hsl(180 60% 35% / 0.15);
+    --glow-leaf: 0 0 15px hsl(140 60% 40% / 0.25), 0 0 30px hsl(140 60% 40% / 0.15);
+
+    --sidebar-background: 140 25% 96%;
+    --sidebar-foreground: 160 40% 10%;
+    --sidebar-primary: 160 70% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 140 20% 93%;
+    --sidebar-accent-foreground: 160 40% 10%;
+    --sidebar-border: 160 25% 88%;
+    --sidebar-ring: 160 70% 35%;
   }
 }
 
@@ -112,13 +178,30 @@ All colors MUST be HSL.
     border: 1px solid hsl(var(--border) / 0.4);
   }
 
+  /* Light mode glass card adjustment */
+  .light .glass-card {
+    background: linear-gradient(135deg, hsl(var(--card) / 0.95), hsl(var(--card) / 0.85));
+    box-shadow: 0 4px 20px hsl(160 40% 10% / 0.05);
+  }
+
   .neon-text {
     text-shadow: var(--glow-emerald);
+  }
+
+  /* Light mode neon text adjustment */
+  .light .neon-text {
+    text-shadow: 0 0 10px hsl(160 70% 35% / 0.3);
   }
 
   .neon-border {
     border: 2px solid hsl(var(--primary));
     box-shadow: var(--glow-emerald), inset 0 0 20px hsl(var(--primary) / 0.1);
+  }
+
+  /* Light mode neon border adjustment */
+  .light .neon-border {
+    border: 2px solid hsl(var(--primary));
+    box-shadow: 0 2px 10px hsl(var(--primary) / 0.2), inset 0 0 10px hsl(var(--primary) / 0.05);
   }
 
   .glow-pulse {
@@ -131,6 +214,19 @@ All colors MUST be HSL.
     }
     50% {
       box-shadow: 0 0 30px hsl(160 84% 45% / 0.7), 0 0 60px hsl(160 84% 45% / 0.5);
+    }
+  }
+
+  .light .glow-pulse {
+    animation: glow-pulse-light 2s ease-in-out infinite;
+  }
+
+  @keyframes glow-pulse-light {
+    0%, 100% {
+      box-shadow: 0 2px 15px hsl(160 70% 35% / 0.2);
+    }
+    50% {
+      box-shadow: 0 4px 25px hsl(160 70% 35% / 0.35);
     }
   }
 
@@ -158,11 +254,22 @@ All colors MUST be HSL.
     box-shadow: 0 0 30px hsl(160 84% 45% / 0.3), 0 0 60px hsl(140 70% 50% / 0.2);
   }
 
+  .light .eco-glow {
+    box-shadow: 0 4px 20px hsl(160 70% 35% / 0.15), 0 8px 40px hsl(140 60% 40% / 0.1);
+  }
+
   .leaf-pattern {
     background-image: 
       radial-gradient(ellipse at 20% 80%, hsl(160 84% 45% / 0.1) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 20%, hsl(140 70% 50% / 0.1) 0%, transparent 50%),
       radial-gradient(ellipse at 50% 50%, hsl(180 70% 45% / 0.05) 0%, transparent 70%);
+  }
+
+  .light .leaf-pattern {
+    background-image: 
+      radial-gradient(ellipse at 20% 80%, hsl(160 70% 35% / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, hsl(140 60% 40% / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, hsl(180 60% 35% / 0.04) 0%, transparent 70%);
   }
 
   .nature-shimmer {
@@ -176,6 +283,16 @@ All colors MUST be HSL.
     animation: shimmer 3s ease-in-out infinite;
   }
 
+  .light .nature-shimmer {
+    background: linear-gradient(
+      45deg,
+      transparent 30%,
+      hsl(160 70% 35% / 0.08) 50%,
+      transparent 70%
+    );
+    background-size: 200% 200%;
+  }
+
   @keyframes shimmer {
     0%, 100% {
       background-position: 200% 200%;
@@ -183,5 +300,32 @@ All colors MUST be HSL.
     50% {
       background-position: 0% 0%;
     }
+  }
+
+  /* Theme icon animations */
+  @keyframes sun-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes moon-wobble {
+    0%, 100% {
+      transform: rotate(-5deg);
+    }
+    50% {
+      transform: rotate(5deg);
+    }
+  }
+
+  .theme-sun {
+    animation: sun-spin 20s linear infinite;
+  }
+
+  .theme-moon {
+    animation: moon-wobble 3s ease-in-out infinite;
   }
 }
